@@ -1,0 +1,198 @@
+:root {
+  --primary-color: #2D6DA9;
+  --primary-dark: #1C4F7E;
+  --secondary-color: #f8f9fa;
+  --text-color: #333;
+  --error-color: #dc3545;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
+}
+
+/* Исправления для разрешения экрана */
+body {
+  background-color: #f8f9fa;
+  color: var(--text-color);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  max-width: 1000px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  height: auto;
+  min-height: 500px;
+}
+
+/*.login-image {*/
+/*  flex: 1;*/
+/*  background: url('../assets/images/dental-background.jpg') center/cover;*/
+/*  position: relative;*/
+/*  min-height: 100%;*/
+/*}*/
+
+.login-image::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(45, 109, 169, 0.7);
+}
+
+.login-image-content {
+  position: absolute;
+  top: 30%;  /* Перемещено выше с 50% до 30% */
+  transform: translateY(-50%);
+  left: 40px;
+  right: 40px;
+  color: white;
+  text-align: center;
+  padding: 30px;  /* Увеличен внутренний отступ */
+  background-color: rgba(0, 0, 0, 0.4);  /* Полупрозрачный фон для лучшей читаемости */
+  border-radius: 8px;
+}
+
+.login-image-content h2 {
+  font-size: 26px;
+  margin-bottom: 30px;  /* Увеличен отступ после заголовка с 15px до 30px */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);  /* Тень для лучшей читаемости */
+  font-weight: 600;  /* Сделан более жирным для лучшего визуального разделения */
+}
+
+.login-image-content p {
+  font-size: 16px;
+  line-height: 1.8;  /* Увеличен межстрочный интервал */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.login-form-container {
+  flex: 1;
+  padding: 50px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.login-header h1 {
+  font-size: 28px;
+  color: var(--primary-color);
+  margin-bottom: 10px;
+}
+
+.login-header p {
+  color: #6c757d;
+  font-size: 15px;
+}
+
+.login-form {
+  max-width: 350px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+
+.btn {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.forgot-password {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.forgot-password a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 40px;
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.system-requirements {
+  margin-top: 10px;
+}
+
+@media (max-width: 992px) {
+  .container {
+    max-width: 90%;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    max-width: 95%;
+    margin: 20px;
+  }
+
+  .login-image {
+    height: 200px;
+  }
+  
+  .login-form-container {
+    padding: 30px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    margin: 10px;
+    max-width: 100%;
+  }
+  
+  .login-form-container {
+    padding: 20px 15px;
+  }
+  
+  .login-header h1 {
+    font-size: 24px;
+  }
+}

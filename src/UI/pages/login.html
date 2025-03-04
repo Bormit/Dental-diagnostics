@@ -1,10 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DentalAI - Система поддержки принятия решений</title>
+  <link rel="stylesheet" href="../styles/login.css">
 </head>
 <body>
+<div class="container">
+  <div class="login-image">
+    <div class="login-image-content">
+      <h2>Интеллектуальная система диагностики</h2>
+      <p>Повысьте точность стоматологической диагностики с помощью современных технологий искусственного интеллекта</p>
+    </div>
+  </div>
 
+  <div class="login-form-container">
+    <div class="login-header">
+      <h1>DentalAI</h1>
+      <p>Система поддержки принятия решений для стоматологической практики</p>
+    </div>
+
+    <form class="login-form" id="loginForm">
+      <div class="form-group">
+        <label for="username">Имя пользователя</label>
+        <input type="text" id="username" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Пароль</label>
+        <input type="password" id="password" class="form-control" required>
+      </div>
+
+      <button type="submit" class="btn">Войти в систему</button>
+
+      <div class="forgot-password">
+        <a href="#">Забыли пароль?</a>
+      </div>
+    </form>
+
+    <div class="login-footer">
+      <p>&copy; 2025 DentalAI. Все права защищены.</p>
+      <p class="system-requirements">Рекомендуемые браузеры: Chrome 80+, Firefox 75+, Edge 80+</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Здесь будет логика аутентификации
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    // Проверка данных (для примера)
+    if (username && password) {
+      // В реальном приложении здесь будет отправка запроса на сервер
+      window.location.href = 'dashboard.html';
+    }
+  });
+</script>
 </body>
 </html>
