@@ -1,0 +1,220 @@
+.page-header {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page-title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.page-actions button {
+    padding: 8px 15px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    cursor: pointer;
+}
+
+.search-container {
+    display: flex;
+    margin-bottom: 20px;
+    background-color: var(--white);
+    padding: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.search-box {
+    display: flex;
+    flex: 1;
+}
+
+.search-input {
+    flex: 1;
+    padding: 8px 15px;
+    border: 1px solid var(--border-color);
+}
+
+.search-button {
+    padding: 8px 15px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    cursor: pointer;
+}
+
+.filter-button {
+    padding: 8px 15px;
+    background-color: var(--white);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.patients-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--white);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.patients-table th {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+    background-color: #F5F5F5;
+}
+
+.patients-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.patients-table tr:hover {
+    background-color: #F5F5F5;
+}
+
+.patients-table .patient-name {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination-button {
+    padding: 5px 10px;
+    margin: 0 5px;
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.pagination-button.active {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+}
+
+.action-button {
+    padding: 5px 10px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    margin-right: 5px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.action-button.view {
+    background-color: var(--waiting-color);
+}
+
+.action-button.diagnose {
+    background-color: var(--success-color);
+}
+
+.filter-panel {
+    background-color: var(--white);
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.filter-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.filter-group {
+    flex: 1;
+}
+
+.filter-label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.filter-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.clear-button {
+    padding: 8px 15px;
+    background-color: var(--white);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.apply-button {
+    padding: 8px 15px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    cursor: pointer;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--white);
+    width: 500px;
+    max-width: 90%;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}

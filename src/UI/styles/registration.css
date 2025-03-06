@@ -1,0 +1,348 @@
+:root {
+  --primary-color: #2D6DA9;
+  --primary-dark: #1C4F7E;
+  --secondary-color: #f8f9fa;
+  --text-color: #333;
+  --error-color: #dc3545;
+  --success-color: #28a745;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
+}
+
+/* Исправления для body */
+body {
+  background-color: #f8f9fa;
+  color: var(--text-color);
+  height: 100vh; /* Изменено с min-height на height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0; /* Убираем отступы */
+}
+
+/* Исправления для контейнера */
+.container {
+  display: flex;
+  width: 100%;
+  max-width: 1100px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  min-height: 600px; /* Фиксированная минимальная высота */
+  max-height: 90vh; /* Максимальная высота относительно вьюпорта */
+  margin: 20px;
+}
+
+.registration-image {
+  flex: 1;
+  background: url('../assets/images/dental-background.jpg') center/cover;
+  position: relative;
+  min-height: 600px;
+}
+
+.registration-image::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(45, 109, 169, 0.7);
+}
+
+.registration-image-content {
+  position: absolute;
+  bottom: 40px;
+  left: 30px;
+  right: 30px;
+  color: white;
+}
+
+.registration-image-content h2 {
+  font-size: 26px;
+  margin-bottom: 15px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.registration-image-content p {
+  font-size: 16px;
+  line-height: 1.6;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.registration-benefits {
+  margin-top: 20px;
+}
+
+.registration-benefits h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.benefits-list {
+  list-style-type: none;
+}
+
+.benefits-list li {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.benefits-list li::before {
+  content: '✓';
+  margin-right: 8px;
+  color: var(--success-color);
+}
+
+.registration-form-container {
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+  max-height: 800px;
+}
+
+.registration-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.registration-header h1 {
+  font-size: 28px;
+  color: var(--primary-color);
+  margin-bottom: 10px;
+}
+
+.registration-header p {
+  color: #6c757d;
+  font-size: 15px;
+}
+
+.registration-form {
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 15px;
+  transition: border-color 0.3s;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(45, 109, 169, 0.25);
+}
+
+.form-hint {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.form-check {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.form-check-input {
+  margin-right: 10px;
+  margin-top: 3px;
+}
+
+.form-check-label {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.form-check-label a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.form-check-label a:hover {
+  text-decoration: underline;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn:hover {
+  background-color: var(--primary-dark);
+}
+
+.login-link {
+  text-align: center;
+  margin-top: 25px;
+  font-size: 14px;
+}
+
+.login-link a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}
+
+.registration-footer {
+  text-align: center;
+  margin-top: 40px;
+  font-size: 13px;
+  color: #6c757d;
+}
+
+/* Улучшенные медиа-запросы для лучшей адаптивности */
+@media (max-width: 992px) {
+  .container {
+    flex-direction: column;
+    max-width: 95%;
+    min-height: auto; /* Убираем min-height */
+    max-height: 95vh;
+  }
+
+  .registration-image {
+    min-height: 250px; /* Уменьшаем высоту */
+  }
+  
+  .registration-image-content {
+    bottom: 20px;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    margin: 15px;
+  }
+  
+  .registration-form-container {
+    padding: 25px 20px;
+    max-height: none; /* Убираем ограничение */
+    overflow-y: visible; /* Разрешаем показывать всю форму */
+  }
+  
+  .registration-image {
+    min-height: 200px;
+  }
+  
+  .registration-benefits h3 {
+    font-size: 16px;
+  }
+  
+  .benefits-list li {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 576px) {
+  body {
+    padding: 10px; /* Добавляем небольшой отступ */
+  }
+  
+  .container {
+    margin: 0;
+    max-width: 100%;
+    border-radius: 8px;
+    min-height: auto;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .registration-form-container {
+    padding: 20px 15px;
+  }
+  
+  .registration-header h1 {
+    font-size: 22px;
+  }
+  
+  .registration-image {
+    min-height: 150px;
+  }
+  
+  .registration-image-content h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .registration-image-content p {
+    font-size: 14px;
+  }
+  
+  .registration-image-content {
+    bottom: 10px;
+    left: 15px;
+    right: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    height: auto;
+    min-height: 100vh;
+    padding: 10px 0;
+  }
+  
+  .container {
+    height: auto;
+    border-radius: 0;
+    margin: 0;
+  }
+  
+  .registration-image {
+    min-height: 120px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}

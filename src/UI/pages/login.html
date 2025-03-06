@@ -2,64 +2,78 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>DentalAI - Система поддержки принятия решений</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentalAI - Авторизация</title>
   <link rel="stylesheet" href="../styles/login.css">
 </head>
 <body>
-<div class="container">
-  <div class="login-image">
-    <div class="login-image-content">
-      <h2>Интеллектуальная система диагностики</h2>
-      <p>Повысьте точность стоматологической диагностики с помощью современных технологий искусственного интеллекта</p>
+<div class="login-container">
+  <div class="logo-container">
+    <div class="logo">DentalAI</div>
+  </div>
+
+  <div class="user-info">
+    <div class="user-avatar">
+      <img src="/api/placeholder/60/60" alt="Аватар пользователя" class="avatar-image">
+    </div>
+    <div class="user-text">
+      Авторизация пользователя
     </div>
   </div>
 
-  <div class="login-form-container">
-    <div class="login-header">
-      <h1>DentalAI</h1>
-      <p>Система поддержки принятия решений для стоматологической практики</p>
+  <div class="login-form">
+    <div class="form-title">Место оказания медуслуг</div>
+
+    <div class="form-group">
+      <div class="select-wrapper">
+        <select id="clinic">
+          <option value="" disabled selected>СП1</option>
+          <option value="sp1">Стоматологическая поликлиника №1</option>
+          <option value="sp2">Стоматологическая поликлиника №2</option>
+          <option value="sp3">Стоматологическая клиника "ДентаМед"</option>
+        </select>
+      </div>
+      <div class="error-message" id="clinic-error">Пожалуйста, выберите место оказания услуг</div>
     </div>
 
-    <form class="login-form" id="loginForm">
-      <div class="form-group">
-        <label for="username">Имя пользователя</label>
-        <input type="text" id="username" class="form-control" required>
+    <div class="form-group">
+      <div class="select-wrapper">
+        <select id="position">
+          <option value="" disabled selected>ДОЛЖНОСТЬ</option>
+          <option value="dentist">Врач-стоматолог терапевт</option>
+          <option value="surgeon">Врач-стоматолог хирург</option>
+          <option value="ortho">Врач-стоматолог ортопед</option>
+          <option value="ortho_dent">Врач-ортодонт</option>
+        </select>
       </div>
-
-      <div class="form-group">
-        <label for="password">Пароль</label>
-        <input type="password" id="password" class="form-control" required>
-      </div>
-
-      <button type="submit" class="btn">Войти в систему</button>
-
-      <div class="forgot-password">
-        <a href="#">Забыли пароль?</a>
-      </div>
-    </form>
-
-    <div class="login-footer">
-      <p>&copy; 2025 DentalAI. Все права защищены.</p>
-      <p class="system-requirements">Рекомендуемые браузеры: Chrome 80+, Firefox 75+, Edge 80+</p>
+      <div class="error-message" id="position-error">Пожалуйста, выберите должность</div>
     </div>
+
+    <div class="role-title">Основная роль</div>
+
+    <div class="form-group">
+      <div class="select-wrapper">
+        <select id="role">
+          <option value="" disabled selected>Врач</option>
+          <option value="doctor">Врач</option>
+          <option value="head">Заведующий отделением</option>
+          <option value="admin">Администратор</option>
+        </select>
+      </div>
+      <div class="error-message" id="role-error">Пожалуйста, выберите роль</div>
+    </div>
+
+    <button type="button" id="login-btn" class="submit-btn">
+      <span class="btn-text">Продолжить</span>
+      <span class="btn-icon">→</span>
+    </button>
   </div>
 </div>
 
-<script>
-  document.getElementById('loginForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+<div class="version-info">
+  © 2025 DentalAI - Система поддержки принятия решений v1.0
+</div>
 
-    // Здесь будет логика аутентификации
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-
-    // Проверка данных (для примера)
-    if (username && password) {
-      // В реальном приложении здесь будет отправка запроса на сервер
-      window.location.href = 'dashboard.html';
-    }
-  });
-</script>
+<script src="../js/login.js"></script>
 </body>
 </html>

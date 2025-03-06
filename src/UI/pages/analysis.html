@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../styles/main.css">
+  <link rel="stylesheet" href="../styles/analysis.css">
+  <title>DentalAI - Анализ рентгеновского снимка</title>
+</head>
+<body>
+<div class="header">
+  <div class="header-logo">DentalAI</div>
+  <div class="header-title">АНАЛИЗ СНИМКА</div>
+  <div class="header-user">
+    <div class="user-avatar">ИИ</div>
+    <div>Иванов И.И.</div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <ul class="sidebar-menu">
+      <li class="sidebar-menu-item">
+        <a href="dashboard.html">План амбулаторного приема</a>
+      </li>
+      <li class="sidebar-menu-item active">
+        <a href="#">Анализ снимков</a>
+      </li>
+      <li class="sidebar-menu-item section">ПАЦИЕНТЫ</li>
+      <li class="sidebar-menu-item">
+        <a href="patients.html">Карточки пациентов</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Поиск пациента</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Новый пациент</a>
+      </li>
+      <li class="sidebar-menu-item section">ДОКУМЕНТЫ</li>
+      <li class="sidebar-menu-item">
+        <a href="#">Заключения</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Назначения</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Отчеты</a>
+      </li>
+      <li class="sidebar-menu-item section">СИСТЕМА</li>
+      <li class="sidebar-menu-item">
+        <a href="#">Статистика ИИ</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Настройки</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Выход</a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="main-content">
+    <div class="page-header">
+      <h1 class="page-title">Анализ рентгеновского снимка</h1>
+    </div>
+
+    <div class="search-panel">
+      <div class="search-title">Выбор пациента</div>
+      <div class="search-form">
+        <div class="search-group">
+          <label class="search-label">ФИО пациента</label>
+          <input type="text" class="search-input" id="patientName" placeholder="Введите ФИО пациента" value="Петров Петр Петрович">
+        </div>
+        <div class="search-group">
+          <label class="search-label">Дата рождения</label>
+          <input type="date" class="search-input" id="birthDate" value="1985-04-15">
+        </div>
+        <div class="search-group">
+          <label class="search-label">Пол</label>
+          <select class="search-input" id="gender">
+            <option value="male" selected>Мужской</option>
+            <option value="female">Женский</option>
+          </select>
+        </div>
+        <div class="search-group">
+          <label class="search-label">Номер карты</label>
+          <input type="text" class="search-input" id="cardNumber" placeholder="Введите номер карты" value="12345">
+        </div>
+      </div>
+      <div class="search-actions">
+        <button class="search-clear" id="clearPatientBtn">Очистить</button>
+        <button class="search-btn" id="searchPatientBtn">Найти пациента</button>
+      </div>
+    </div>
+
+    <!-- Информация о пациенте (отображается после поиска/выбора пациента) -->
+    <div class="patient-info" id="patientInfoPanel">
+      <div class="patient-name">Петров Петр Петрович</div>
+      <div class="patient-details">
+        <div class="patient-detail-group">
+          <div class="patient-detail-label">Дата рождения:</div>
+          <div class="patient-detail-value">15.04.1985</div>
+        </div>
+        <div class="patient-detail-group">
+          <div class="patient-detail-label">Пол:</div>
+          <div class="patient-detail-value">Мужской</div>
+        </div>
+        <div class="patient-detail-group">
+          <div class="patient-detail-label">Карта №:</div>
+          <div class="patient-detail-value">12345</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Предупреждение если пациент не выбран (скрыто по умолчанию) -->
+    <div class="no-patient-info" id="noPatientWarning" style="display: none;">
+      <div class="warning-text"><span class="warning-icon">⚠</span> Пациент не выбран</div>
+      <div class="warning-message">Анализ можно провести без привязки к пациенту, но результаты не будут сохранены в медицинскую карту.</div>
+    </div>
+
+    <div class="analysis-container">
+      <div class="analysis-left">
+        <div class="panel">
+          <div class="panel-header">
+            Загрузка рентгеновского снимка
+          </div>
+          <div class="panel-content">
+            <div class="upload-container" id="uploadArea">
+              <div class="upload-text">Перетащите файл снимка или нажмите для выбора</div>
+              <button class="upload-btn">Выбрать файл</button>
+              <input type="file" id="fileInput" accept="image/*" style="display: none;">
+            </div>
+
+            <div id="imagePreview" style="display: none;">
+              <div class="image-container">
+                <img src="" alt="Предпросмотр снимка" class="xray-image" id="previewImage">
+              </div>
+              <div style="text-align: center;">
+                <button class="upload-btn" id="analyzeBtn">Начать анализ</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="analysis-right">
+        <div class="panel">
+          <div class="panel-header">
+            История снимков пациента
+          </div>
+          <div class="panel-content" id="patientHistoryPanel">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+              <div style="font-size: 14px; font-weight: bold;">15.12.2024</div>
+              <a href="#" style="color: var(--primary-color); font-size: 14px;">Просмотреть</a>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+              <div style="font-size: 14px; font-weight: bold;">10.10.2024</div>
+              <a href="#" style="color: var(--primary-color); font-size: 14px;">Просмотреть</a>
+            </div>
+
+            <div style="text-align: center; margin-top: 15px;">
+              <button class="search-btn">Показать все</button>
+            </div>
+          </div>
+
+          <!-- Отображается когда пациент не выбран -->
+          <div class="panel-content" id="noHistoryPanel" style="display: none;">
+            <div style="text-align: center; color: var(--text-light); padding: 20px 0;">
+              История снимков будет доступна после выбора пациента
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/analysis-patient.js"></script>
+</body>
+</html>

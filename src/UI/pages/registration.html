@@ -1,0 +1,148 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="ru">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8">-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">-->
+<!--  <title>DentalAI - Регистрация в системе</title>-->
+<!--  <link rel="stylesheet" href="../styles/registration.css">-->
+<!--</head>-->
+<!--<body>-->
+<!--<div class="container">-->
+<!--  <div class="registration-image">-->
+<!--    <div class="registration-image-content">-->
+<!--      <h2>Присоединяйтесь к платформе DentalAI</h2>-->
+<!--      <p>Используйте передовые технологии искусственного интеллекта для повышения точности стоматологической диагностики</p>-->
+
+<!--      <div class="registration-benefits">-->
+<!--        <h3>Преимущества системы:</h3>-->
+<!--        <ul class="benefits-list">-->
+<!--          <li>Автоматический анализ рентгеновских снимков</li>-->
+<!--          <li>Высокая точность диагностики различных патологий</li>-->
+<!--          <li>Безопасное хранение медицинских данных</li>-->
+<!--          <li>Интеграция с существующими медицинскими системами</li>-->
+<!--          <li>Постоянное обучение и улучшение нейросети</li>-->
+<!--        </ul>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+
+<!--  <div class="registration-form-container">-->
+<!--    <div class="registration-header">-->
+<!--      <h1>Регистрация в DentalAI</h1>-->
+<!--      <p>Заполните форму для создания аккаунта в системе</p>-->
+<!--    </div>-->
+
+<!--    <form class="registration-form" id="registrationForm">-->
+<!--      <div class="form-row">-->
+<!--        <div class="form-group">-->
+<!--          <label for="lastName">Фамилия*</label>-->
+<!--          <input type="text" id="lastName" class="form-control" required>-->
+<!--        </div>-->
+
+<!--        <div class="form-group">-->
+<!--          <label for="firstName">Имя*</label>-->
+<!--          <input type="text" id="firstName" class="form-control" required>-->
+<!--        </div>-->
+<!--      </div>-->
+
+<!--      <div class="form-group">-->
+<!--        <label for="middleName">Отчество</label>-->
+<!--        <input type="text" id="middleName" class="form-control">-->
+<!--      </div>-->
+
+<!--      <div class="form-group">-->
+<!--        <label for="email">Электронная почта*</label>-->
+<!--        <input type="email" id="email" class="form-control" required>-->
+<!--        <div class="form-hint">Будет использоваться для входа в систему и уведомлений</div>-->
+<!--      </div>-->
+
+<!--      <div class="form-group">-->
+<!--        <label for="specialization">Специализация*</label>-->
+<!--        <select id="specialization" class="form-control" required>-->
+<!--          <option value="">Выберите специализацию</option>-->
+<!--          <option value="therapist">Стоматолог-терапевт</option>-->
+<!--          <option value="surgeon">Стоматолог-хирург</option>-->
+<!--          <option value="orthopedist">Стоматолог-ортопед</option>-->
+<!--          <option value="orthodontist">Ортодонт</option>-->
+<!--          <option value="periodontist">Пародонтолог</option>-->
+<!--          <option value="pediatric">Детский стоматолог</option>-->
+<!--          <option value="other">Другое</option>-->
+<!--        </select>-->
+<!--      </div>-->
+
+<!--      <div class="form-group">-->
+<!--        <label for="licenseNumber">Номер лицензии/сертификата*</label>-->
+<!--        <input type="text" id="licenseNumber" class="form-control" required>-->
+<!--        <div class="form-hint">Введите номер действующей лицензии на осуществление медицинской деятельности</div>-->
+<!--      </div>-->
+
+<!--      <div class="form-group">-->
+<!--        <label for="organization">Медицинская организация*</label>-->
+<!--        <input type="text" id="organization" class="form-control" required>-->
+<!--      </div>-->
+
+<!--      <div class="form-row">-->
+<!--        <div class="form-group">-->
+<!--          <label for="password">Пароль*</label>-->
+<!--          <input type="password" id="password" class="form-control" required>-->
+<!--          <div class="form-hint">Минимум 8 символов, включая буквы и цифры</div>-->
+<!--        </div>-->
+
+<!--        <div class="form-group">-->
+<!--          <label for="confirmPassword">Подтверждение пароля*</label>-->
+<!--          <input type="password" id="confirmPassword" class="form-control" required>-->
+<!--        </div>-->
+<!--      </div>-->
+
+<!--      <div class="form-check">-->
+<!--        <input type="checkbox" id="termsAgreement" class="form-check-input" required>-->
+<!--        <label for="termsAgreement" class="form-check-label">-->
+<!--          Я согласен с <a href="#">условиями использования</a> и <a href="#">политикой конфиденциальности</a>. Я подтверждаю, что являюсь практикующим медицинским специалистом.-->
+<!--        </label>-->
+<!--      </div>-->
+
+<!--      <div class="form-check">-->
+<!--        <input type="checkbox" id="dataProcessingAgreement" class="form-check-input" required>-->
+<!--        <label for="dataProcessingAgreement" class="form-check-label">-->
+<!--          Я даю согласие на обработку персональных данных и хранение медицинской информации в соответствии с действующим законодательством.-->
+<!--        </label>-->
+<!--      </div>-->
+
+<!--      <button type="submit" class="btn">Создать аккаунт</button>-->
+
+<!--      <div class="login-link">-->
+<!--        Уже есть аккаунт? <a href="login.html">Войти в систему</a>-->
+<!--      </div>-->
+<!--    </form>-->
+
+<!--    <div class="registration-footer">-->
+<!--      <p>&copy; 2025 DentalAI. Все права защищены.</p>-->
+<!--      <p>При возникновении вопросов, свяжитесь с технической поддержкой: support@dentalai.ru</p>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
+
+<!--<script>-->
+<!--  document.getElementById('registrationForm').addEventListener('submit', function(e) {-->
+<!--    e.preventDefault();-->
+
+<!--    // Базовая валидация-->
+<!--    const password = document.getElementById('password').value;-->
+<!--    const confirmPassword = document.getElementById('confirmPassword').value;-->
+
+<!--    if (password !== confirmPassword) {-->
+<!--      alert('Пароли не совпадают.');-->
+<!--      return;-->
+<!--    }-->
+
+<!--    if (password.length < 8) {-->
+<!--      alert('Пароль должен содержать не менее 8 символов.');-->
+<!--      return;-->
+<!--    }-->
+
+<!--    // В реальном приложении здесь будет отправка данных на сервер-->
+<!--    alert('Регистрация прошла успешно! После проверки ваших данных администратором, вы получите доступ к системе.');-->
+<!--  });-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->

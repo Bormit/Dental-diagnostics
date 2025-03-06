@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentalAI - Главная панель</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <link rel="stylesheet" href="../styles/dashboard.css">
+</head>
+<body>
+<div class="header">
+  <div class="header-logo">DentalAI</div>
+  <div class="header-title">ПРИЕМ ПАЦИЕНТОВ</div>
+  <div class="header-user">
+    <div class="user-avatar">ИИ</div>
+    <div>Иванов И.И.</div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <ul class="sidebar-menu">
+      <li class="sidebar-menu-item active">
+        <a href="#">План амбулаторного приема</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="analysis.html">Анализ снимков</a>
+      </li>
+      <li class="sidebar-menu-item section">ПАЦИЕНТЫ</li>
+      <li class="sidebar-menu-item">
+        <a href="patients.html">Карточки пациентов</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Поиск пациента</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Новый пациент</a>
+      </li>
+      <li class="sidebar-menu-item section">ДОКУМЕНТЫ</li>
+      <li class="sidebar-menu-item">
+        <a href="#">Заключения</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Назначения</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Отчеты</a>
+      </li>
+      <li class="sidebar-menu-item section">СИСТЕМА</li>
+      <li class="sidebar-menu-item">
+        <a href="#">Статистика ИИ</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Настройки</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Выход</a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="main-content">
+    <div class="page-header">
+      <h1 class="page-title">План амбулаторного приема</h1>
+      <div class="page-actions">
+        <button class="action-secondary">Печать</button>
+        <button>Новый пациент</button>
+      </div>
+    </div>
+
+    <div class="calendar-nav">
+      <div class="calendar-arrow">&lt;</div>
+      <div class="calendar-date">
+        <div class="calendar-date-input">5 марта 2025, Ср</div>
+      </div>
+      <div class="calendar-arrow">&gt;</div>
+    </div>
+
+    <div class="search-box">
+      <input type="text" class="search-input" placeholder="Поиск пациента в текущей дате">
+      <button class="search-button">Поиск</button>
+    </div>
+
+    <div class="patient-list">
+      <div class="patient-category">
+        <div class="category-header category-emergency">ЭКСТРЕННЫЕ 1</div>
+        <div class="patient-item">
+          <div class="patient-time">10:30</div>
+          <div class="patient-info">
+            <div class="patient-name">Петров Иван Сергеевич <span class="status-badge status-emergency">экстренный</span></div>
+            <div class="patient-details">М, 42 года • первичный</div>
+          </div>
+          <div class="patient-actions">
+            <button>Начать прием</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="patient-category">
+        <div class="category-header category-waiting">ОЖИДАЮЩИЕ 3</div>
+        <div class="patient-item">
+          <div class="patient-time">11:00</div>
+          <div class="patient-info">
+            <div class="patient-name">Сидорова Анна Ивановна</div>
+            <div class="patient-details">Ж, 35 лет • повторный</div>
+          </div>
+          <div class="patient-actions">
+            <button>Начать прием</button>
+          </div>
+        </div>
+        <div class="patient-item">
+          <div class="patient-time">11:30</div>
+          <div class="patient-info">
+            <div class="patient-name">Козлов Сергей Михайлович</div>
+            <div class="patient-details">М, 51 год • первичный</div>
+          </div>
+          <div class="patient-actions">
+            <button>Начать прием</button>
+          </div>
+        </div>
+        <div class="patient-item">
+          <div class="patient-time">12:00</div>
+          <div class="patient-info">
+            <div class="patient-name">Кузнецова Ольга Викторовна</div>
+            <div class="patient-details">Ж, 29 лет • первичный</div>
+          </div>
+          <div class="patient-actions">
+            <button>Начать прием</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="xray-upload">
+      <h2>Быстрый анализ рентгеновского снимка</h2>
+      <div class="upload-zone">
+        <p>Перетащите файл снимка или нажмите для выбора</p>
+      </div>
+      <button>Загрузить и анализировать</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/dashboard.js"></script>
+</body>
+</html>

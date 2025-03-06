@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentalAI - Карточки пациентов</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <link rel="stylesheet" href="../styles/patients.css">
+</head>
+<body>
+<div class="header">
+  <div class="header-logo">DentalAI</div>
+  <div class="header-title">КАРТОТЕКА ПАЦИЕНТОВ</div>
+  <div class="header-user">
+    <div class="user-avatar">ИИ</div>
+    <div>Иванов И.И.</div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <ul class="sidebar-menu">
+      <li class="sidebar-menu-item">
+        <a href="dashboard.html">План амбулаторного приема</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="analysis.html">Анализ снимков</a>
+      </li>
+      <li class="sidebar-menu-item section">ПАЦИЕНТЫ</li>
+      <li class="sidebar-menu-item active">
+        <a href="#">Карточки пациентов</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Поиск пациента</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Новый пациент</a>
+      </li>
+      <li class="sidebar-menu-item section">ДОКУМЕНТЫ</li>
+      <li class="sidebar-menu-item">
+        <a href="#">Заключения</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Назначения</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Отчеты</a>
+      </li>
+      <li class="sidebar-menu-item section">СИСТЕМА</li>
+      <li class="sidebar-menu-item">
+        <a href="#">Статистика ИИ</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Настройки</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#">Выход</a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="main-content">
+    <div class="page-header">
+      <h1 class="page-title">Картотека пациентов</h1>
+      <div class="page-actions">
+        <button id="addPatientBtn">Добавить пациента</button>
+      </div>
+    </div>
+
+    <div class="search-container">
+      <div class="search-box">
+        <input type="text" class="search-input" placeholder="Введите ФИО, номер карты или телефон">
+        <button class="search-button">Поиск</button>
+      </div>
+      <button class="filter-button" id="filterBtn">Фильтры</button>
+    </div>
+
+    <div class="filter-panel" id="filterPanel" style="display: none;">
+      <!-- Содержимое панели фильтров -->
+    </div>
+
+    <table class="patients-table">
+      <thead>
+      <tr>
+        <th>ФИО</th>
+        <th>Дата рождения</th>
+        <th>Номер карты</th>
+        <th>Телефон</th>
+        <th>Последний диагноз</th>
+        <th>Последнее посещение</th>
+        <th>Статус</th>
+        <th>Действия</th>
+      </tr>
+      </thead>
+      <tbody>
+      <!-- Содержимое таблицы пациентов -->
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <button class="pagination-button">&lt;</button>
+      <button class="pagination-button active">1</button>
+      <button class="pagination-button">2</button>
+      <button class="pagination-button">3</button>
+      <button class="pagination-button">...</button>
+      <button class="pagination-button">10</button>
+      <button class="pagination-button">&gt;</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно добавления пациента -->
+<div class="modal" id="addPatientModal">
+  <!-- Содержимое модального окна -->
+</div>
+
+<script src="../js/patients.js"></script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+.page-header {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page-title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.page-actions button {
+    padding: 8px 15px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    cursor: pointer;
+}
+
+.action-secondary {
+    background-color: var(--white) !important;
+    color: var(--primary-color) !important;
+    border: 1px solid var(--primary-color) !important;
+    margin-right: 10px;
+}
+
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: var(--primary-color);
+    padding: 10px;
+    color: var(--white);
+}
+
+.calendar-date {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-date-input {
+    padding: 5px 10px;
+    background-color: rgba(255,255,255,0.1);
+    border: none;
+    color: var(--white);
+    text-align: center;
+    cursor: pointer;
+}
+
+.calendar-arrow {
+    padding: 0 10px;
+    cursor: pointer;
+}
+
+.search-box {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 8px 15px;
+    border: 1px solid var(--border-color);
+    max-width: 500px;
+}
+
+.search-button {
+    padding: 8px 15px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    cursor: pointer;
+}
+
+.patient-list {
+    background-color: var(--white);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.patient-category {
+    margin-bottom: 15px;
+}
+
+.category-header {
+    padding: 8px 15px;
+    font-weight: bold;
+    color: var(--white);
+}
+
+.category-emergency {
+    background-color: var(--danger-color);
+}
+
+.category-waiting {
+    background-color: var(--success-color);
+}
+
+.patient-item {
+    display: flex;
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+}
+
+.patient-time {
+    width: 50px;
+    font-weight: bold;
+}
+
+.patient-info {
+    flex: 1;
+}
+
+.patient-name {
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+.patient-details {
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.patient-actions button {
+    padding: 5px 10px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.xray-upload {
+    background-color: var(--white);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-top: 20px;
+    padding: 20px;
+    text-align: center;
+}
+
+.upload-zone {
+    border: 2px dashed var(--border-color);
+    padding: 30px;
+    margin: 20px 0;
+    cursor: pointer;
+}
+
+.upload-zone:hover {
+    border-color: var(--primary-color);
+    background-color: #F5F5F5;
+}
