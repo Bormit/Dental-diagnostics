@@ -1,0 +1,365 @@
+/* Стили для модальных окон */
+.modal, .appointment-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.modal.show, .appointment-modal.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal-content, .appointment-modal-content {
+  background-color: var(--white);
+  border-radius: 4px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 600px;
+  max-width: 90%;
+  transform: translateY(-20px);
+  transition: transform 0.3s;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal.show .modal-content,
+.appointment-modal.show .appointment-modal-content {
+  transform: translateY(0);
+}
+
+.modal-header, .appointment-modal-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.appointment-modal-header {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--primary-color);
+  font-size: 18px;
+}
+
+.appointment-modal-header h3 {
+  margin: 0;
+  color: var(--white);
+  font-size: 18px;
+}
+
+.close-btn, .appointment-modal-close {
+  border: none;
+  background: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text-light);
+}
+
+.appointment-modal-header .close-btn,
+.appointment-modal-header .appointment-modal-close {
+  color: var(--white);
+}
+
+.modal-body, .appointment-modal-body {
+  padding: 20px;
+}
+
+/* Стили для футера с кнопками */
+.modal-footer, .appointment-modal-footer {
+  padding: 15px 20px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;  /* Кнопки по краям */
+}
+
+/* Стили для выбора типа приема */
+.patient-summary {
+  background-color: #f5f5f5;
+  padding: 12px 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  color: var(--text-color);
+}
+
+.patient-card-number {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-top: 5px;
+}
+
+/* Принудительно делаем контейнер действий гридом */
+.action-container {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: auto auto !important;
+  width: 100% !important;
+  gap: 0 !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Заголовок "Выберите действие" */
+.appointment-prompt {
+  display: block !important;
+  width: 100% !important;
+  margin-bottom: 15px !important;
+  color: var(--primary-color);
+  font-weight: 500;
+  font-size: 16px;
+  grid-row: 1 !important;
+  grid-column: 1 !important;
+  text-align: left !important;
+  float: none !important;
+}
+
+/* Контейнер для кнопок действий */
+.appointment-types,
+.appointment-options-buttons {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 15px !important;
+  width: 100% !important;
+  grid-row: 2 !important;
+  grid-column: 1 !important;
+  text-align: center !important;
+  float: none !important;
+  margin: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Стили для отдельных кнопок действий */
+.appointment-type,
+.appointment-option {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 15px;
+  margin: 0 !important;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: #f5f5f5;
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  box-sizing: border-box;
+  margin-bottom: 0 !important;
+}
+
+.appointment-type:hover,
+.appointment-option:hover {
+  border-color: var(--primary-color);
+  background-color: rgba(0, 150, 136, 0.05);
+}
+
+.appointment-type.selected,
+.appointment-option.selected {
+  border-color: var(--primary-color);
+  background-color: var(--primary-light);
+  box-shadow: 0 0 0 2px rgba(0, 150, 136, 0.2);
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.appointment-icon {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.appointment-type-name {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+/* Убираем лишнее пространство между сеткой кнопок и футером */
+.modal-body, .appointment-modal-body {
+  padding: 20px;
+  padding-bottom: 0 !important;
+}
+
+.appointment-options {
+  margin-bottom: 0 !important;
+}
+
+/* Добавляем отступ сверху для футера */
+.modal-footer, .appointment-modal-footer {
+  padding: 15px 20px;
+  margin-top: 20px !important;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Стили кнопок */
+.btn-primary, .start-btn, .appointment-modal-start {
+  padding: 10px 20px;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.btn-primary:hover, .start-btn:hover, .appointment-modal-start:hover {
+  background-color: var(--primary-dark);
+}
+
+.btn-primary:disabled, .start-btn:disabled, .appointment-modal-start:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.btn-secondary, .cancel-btn, .appointment-modal-cancel {
+  padding: 10px 20px;
+  background-color: var(--white);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 100px;
+}
+
+.btn-secondary:hover, .cancel-btn:hover, .appointment-modal-cancel:hover {
+  background-color: #f5f5f5;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .appointment-types,
+  .appointment-options-buttons {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .modal-footer, 
+  .appointment-modal-footer {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+  
+  .btn-secondary, .cancel-btn, .appointment-modal-cancel,
+  .btn-primary, .start-btn, .appointment-modal-start {
+    width: 100%;
+  }
+}
+
+/* Стили для информации о пациенте */
+.patient-info-section {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.patient-info-item {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.patient-info-label {
+  width: 120px;
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+.patient-info-value {
+  flex: 1;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 15px 0;
+  color: var(--primary-color);
+}
+
+/* Убираем все возможные причины пустого пространства */
+hr, br {
+  display: none !important;
+}
+
+/* Убираем все возможные пустые элементы */
+*:empty {
+  display: none !important;
+}
+
+/* Убираем лишние отступы у последнего элемента перед футером */
+.modal-body > *:last-child, 
+.appointment-modal-body > *:last-child {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Кромка между контентом и футером */
+.modal-footer, .appointment-modal-footer {
+  border-top: 1px solid var(--border-color);
+  margin-top: 15px !important;
+}
+
+/* ======================================
+   10. ГАРАНТИРОВАННАЯ ВИДИМОСТЬ ПОИСКА
+   ====================================== */
+.search-box {
+  display: flex !important;
+  margin-bottom: 20px !important;
+  width: 100%;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.search-input {
+  flex: 1;
+  padding: 8px 15px;
+  border: 1px solid var(--border-color);
+  max-width: 500px;
+  display: block !important;
+}
+
+.search-button {
+  padding: 8px 15px;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  cursor: pointer;
+  display: block !important;
+}
+
+/* Стили для результатов поиска */
+.search-results {
+  display: none;
+  background-color: var(--white);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.category-search {
+  background-color: var(--primary-dark);
+}
+
+.no-results {
+  padding: 15px;
+  text-align: center;
+  color: var(--text-light);
+  background-color: var(--white);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.search-highlight {
+  background-color: rgba(255, 235, 59, 0.3);
+  padding: 0 2px;
+}

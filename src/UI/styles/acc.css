@@ -1,0 +1,416 @@
+:root {
+  --primary-color: #009688;
+  --primary-dark: #00796B;
+  --primary-light: #E0F2F1;
+  --secondary-color: #f8f9fa;
+  --success-color: #2E7D32;
+  --warning-color: #ffc107;
+  --danger-color: #E53935;
+  --light-gray: #EEEEEE;
+  --border-color: #E0E0E0;
+  --text-color: #424242;
+  --text-light: #757575;
+  --white: #FFFFFF;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background-color: #F5F5F5;
+  color: var(--text-color);
+}
+
+/* Шапка */
+.header {
+  background-color: var(--primary-color);
+  color: var(--white);
+  padding: 0 20px;
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-logo {
+  font-size: 22px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: normal;
+  letter-spacing: 0.5px;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--white);
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.container {
+  display: flex;
+  min-height: calc(100vh - 50px);
+}
+
+/* Боковое меню */
+.sidebar {
+  width: 250px;
+  background-color: var(--white);
+  box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+}
+
+.sidebar-menu {
+  list-style: none;
+}
+
+.sidebar-menu-item a {
+  display: block;
+  padding: 12px 15px;
+  color: var(--text-color);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+}
+
+.sidebar-menu-item a:hover {
+  background-color: #F5F5F5;
+}
+
+.sidebar-menu-item.active a {
+  border-left-color: var(--primary-color);
+  background-color: #E0F2F1;
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.sidebar-menu-item.section {
+  padding: 10px 15px;
+  color: var(--text-light);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 10px;
+}
+
+/* Основной контент */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  position: relative;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Переключатель ролей (только для демонстрации) */
+.role-switcher {
+  background-color: var(--primary-light);
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  border: 1px solid var(--primary-color);
+}
+
+.role-tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.role-tab {
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  background-color: var(--white);
+  border: 1px solid var(--border-color);
+}
+
+.role-tab.active {
+  background-color: var(--primary-color);
+  color: var(--white);
+  border-color: var(--primary-color);
+}
+
+/* Карточки */
+.card {
+  background-color: var(--white);
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.card-content {
+  padding: 20px;
+}
+
+/* Профильные данные */
+.profile-info {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.info-group {
+  margin-bottom: 15px;
+}
+
+.info-label {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 5px;
+}
+
+.info-value {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Кнопки */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+}
+
+.btn-secondary {
+  background-color: var(--white);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+
+.btn-secondary:hover {
+  background-color: var(--primary-light);
+}
+
+/* Статистика */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background-color: var(--white);
+  border-radius: 4px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: var(--primary-color);
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+/* Таблицы */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.data-table th {
+  font-weight: bold;
+  background-color: var(--light-gray);
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tr:hover {
+  background-color: var(--primary-light);
+}
+
+/* Роль-специфичные компоненты */
+.role-content {
+  display: none;
+}
+
+.role-content.active {
+  display: block;
+}
+
+/* Календарь для врачей */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.calendar-date {
+  font-weight: bold;
+}
+
+.appointment-list {
+  list-style: none;
+}
+
+.appointment-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.appointment-time {
+  min-width: 50px;
+  font-weight: bold;
+}
+
+.appointment-info {
+  flex: 1;
+}
+
+.appointment-name {
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+
+.appointment-type {
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+.appointment-status {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 10px;
+}
+
+.status-waiting {
+  background-color: var(--warning-color);
+  color: var(--white);
+}
+
+.status-in-progress {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+.status-completed {
+  background-color: var(--success-color);
+  color: var(--white);
+}
+
+/* Графики и диаграммы */
+.chart-container {
+  height: 300px;
+  background-color: var(--light-gray);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.chart-placeholder {
+  color: var(--text-light);
+  font-size: 16px;
+}
+
+/* Адаптивность */
+@media (max-width: 992px) {
+  .profile-info {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .role-tabs {
+    flex-wrap: wrap;
+  }
+}

@@ -6,12 +6,13 @@
   <title>DentalAI - Главная панель</title>
   <link rel="stylesheet" href="../styles/main.css">
   <link rel="stylesheet" href="../styles/dashboard.css">
+  <link rel="stylesheet" href="../styles/appointment-window.css">
 </head>
 <body>
 <div class="header">
   <div class="header-logo">DentalAI</div>
   <div class="header-title">ПРИЕМ ПАЦИЕНТОВ</div>
-  <div class="header-user">
+  <div class="header-user" onclick="window.location.href='acc.html'" style="cursor: pointer;">
     <div class="user-avatar">ИИ</div>
     <div>Иванов И.И.</div>
   </div>
@@ -21,7 +22,7 @@
   <div class="sidebar">
     <ul class="sidebar-menu">
       <li class="sidebar-menu-item active">
-        <a href="#">План амбулаторного приема</a>
+        <a href="dashboard.html">План амбулаторного приема</a>
       </li>
       <li class="sidebar-menu-item">
         <a href="analysis.html">Анализ снимков</a>
@@ -31,30 +32,30 @@
         <a href="patients.html">Карточки пациентов</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="#">Поиск пациента</a>
+        <a href="patient-search.html">Поиск пациента</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="#">Новый пациент</a>
+        <a href="new-patient.html">Новый пациент</a>
       </li>
       <li class="sidebar-menu-item section">ДОКУМЕНТЫ</li>
       <li class="sidebar-menu-item">
-        <a href="#">Заключения</a>
+        <a href="conclusions.html">Заключения</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="#">Назначения</a>
+        <a href="prescriptions.html">Назначения</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="#">Отчеты</a>
+        <a href="reports.html">Отчеты</a>
       </li>
       <li class="sidebar-menu-item section">СИСТЕМА</li>
       <li class="sidebar-menu-item">
-        <a href="#">Статистика ИИ</a>
+        <a href="ai-statistics.html">Статистика ИИ</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="#">Настройки</a>
+        <a href="settings.html">Настройки</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="#">Выход</a>
+        <a href="login.html">Выход</a>
       </li>
     </ul>
   </div>
@@ -64,7 +65,7 @@
       <h1 class="page-title">План амбулаторного приема</h1>
       <div class="page-actions">
         <button class="action-secondary">Печать</button>
-        <button>Новый пациент</button>
+        <button id="newPatientBtn" class="action-primary">Новый пациент</button>
       </div>
     </div>
 
@@ -77,10 +78,20 @@
     </div>
 
     <div class="search-box">
-      <input type="text" class="search-input" placeholder="Поиск пациента в текущей дате">
-      <button class="search-button">Поиск</button>
+      <input type="text" class="search-input" id="patientSearchInput" placeholder="Поиск пациента по ФИО">
+      <button class="search-button" id="searchButton">Поиск</button>
     </div>
 
+    <!-- Контейнер для результатов поиска -->
+    <div class="search-results" id="searchResults" style="display: none;">
+      <div class="patient-category">
+        <div class="category-header category-search">РЕЗУЛЬТАТЫ ПОИСКА</div>
+        <div class="no-results" style="display: none;">Пациенты не найдены</div>
+        <!-- Результаты поиска будут добавлены сюда динамически -->
+      </div>
+    </div>
+
+    <!-- Оригинальный список пациентов -->
     <div class="patient-list">
       <div class="patient-category">
         <div class="category-header category-emergency">ЭКСТРЕННЫЕ 1</div>
@@ -91,7 +102,7 @@
             <div class="patient-details">М, 42 года • первичный</div>
           </div>
           <div class="patient-actions">
-            <button>Начать прием</button>
+            <button class="start-appointment-btn" data-id="12345" data-name="Петров Петр Петрович" data-card="P-12345">Начать прием</button>
           </div>
         </div>
       </div>
@@ -141,6 +152,7 @@
   </div>
 </div>
 
+<link rel="stylesheet" href="../styles/appointment-window.css">
 <script src="../js/dashboard.js"></script>
 </body>
 </html>

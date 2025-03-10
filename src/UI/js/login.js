@@ -47,3 +47,37 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+document.getElementById('login-btn').addEventListener('click', function() {
+  // Базовая валидация
+  let isValid = true;
+  const clinic = document.getElementById('clinic');
+  const position = document.getElementById('position');
+  const role = document.getElementById('role');
+  
+  if (clinic.value === "") {
+    document.getElementById('clinic-error').style.display = 'block';
+    isValid = false;
+  } else {
+    document.getElementById('clinic-error').style.display = 'none';
+  }
+  
+  if (position.value === "") {
+    document.getElementById('position-error').style.display = 'block';
+    isValid = false;
+  } else {
+    document.getElementById('position-error').style.display = 'none';
+  }
+  
+  if (role.value === "") {
+    document.getElementById('role-error').style.display = 'block';
+    isValid = false;
+  } else {
+    document.getElementById('role-error').style.display = 'none';
+  }
+  
+  if (isValid) {
+    // Успешная авторизация, переходим в личный кабинет
+    window.location.href = 'acc.html';
+  }
+});

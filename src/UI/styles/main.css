@@ -51,6 +51,12 @@ body {
 .header-user {
     display: flex;
     align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.header-user:hover {
+    opacity: 0.9;
 }
 
 .user-avatar {

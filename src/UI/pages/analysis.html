@@ -3,15 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentalAI - Анализ снимков</title>
   <link rel="stylesheet" href="../styles/main.css">
+  <!-- Сначала основные стили страницы -->
   <link rel="stylesheet" href="../styles/analysis.css">
-  <title>DentalAI - Анализ рентгеновского снимка</title>
+  <!-- Затем стили модальных окон -->
+  <link rel="stylesheet" href="../styles/appointment-window.css">
 </head>
 <body>
 <div class="header">
   <div class="header-logo">DentalAI</div>
   <div class="header-title">АНАЛИЗ СНИМКА</div>
-  <div class="header-user">
+  <div class="header-user" onclick="window.location.href='acc.html'" style="cursor: pointer;">
     <div class="user-avatar">ИИ</div>
     <div>Иванов И.И.</div>
   </div>
@@ -24,37 +27,37 @@
         <a href="dashboard.html">План амбулаторного приема</a>
       </li>
       <li class="sidebar-menu-item active">
-        <a href="#">Анализ снимков</a>
+        <a href="analysis.html">Анализ снимков</a>
       </li>
       <li class="sidebar-menu-item section">ПАЦИЕНТЫ</li>
       <li class="sidebar-menu-item">
         <a href="patients.html">Карточки пациентов</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="#">Поиск пациента</a>
+        <a href="patient-search.html">Поиск пациента</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="#">Новый пациент</a>
+        <a href="new-patient.html">Новый пациент</a>
       </li>
       <li class="sidebar-menu-item section">ДОКУМЕНТЫ</li>
       <li class="sidebar-menu-item">
-        <a href="#">Заключения</a>
+        <a href="conclusions.html">Заключения</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="#">Назначения</a>
+        <a href="prescriptions.html">Назначения</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="#">Отчеты</a>
+        <a href="reports.html">Отчеты</a>
       </li>
       <li class="sidebar-menu-item section">СИСТЕМА</li>
       <li class="sidebar-menu-item">
-        <a href="#">Статистика ИИ</a>
+        <a href="ai-statistics.html">Статистика ИИ</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="#">Настройки</a>
+        <a href="settings.html">Настройки</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="#">Выход</a>
+        <a href="login.html">Выход</a>
       </li>
     </ul>
   </div>

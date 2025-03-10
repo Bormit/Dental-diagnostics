@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentalAI - Поиск пациентов</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <link rel="stylesheet" href="../styles/patient-search.css">
+</head>
+<body>
+<div class="header">
+  <div class="header-logo">DentalAI</div>
+  <div class="header-title">ПОИСК ПАЦИЕНТОВ</div>
+  <div class="header-user" onclick="window.location.href='acc.html'" style="cursor: pointer;">
+    <div class="user-avatar">ИИ</div>
+    <div>Иванов И.И.</div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <ul class="sidebar-menu">
+      <li class="sidebar-menu-item">
+        <a href="dashboard.html">План амбулаторного приема</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="analysis.html">Анализ снимков</a>
+      </li>
+      <li class="sidebar-menu-item section">ПАЦИЕНТЫ</li>
+      <li class="sidebar-menu-item">
+        <a href="patients.html">Карточки пациентов</a>
+      </li>
+      <li class="sidebar-menu-item active">
+        <a href="patient-search.html">Поиск пациента</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="new-patient.html">Новый пациент</a>
+      </li>
+      <li class="sidebar-menu-item section">ДОКУМЕНТЫ</li>
+      <li class="sidebar-menu-item">
+        <a href="conclusions.html">Заключения</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="prescriptions.html">Назначения</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="reports.html">Отчеты</a>
+      </li>
+      <li class="sidebar-menu-item section">СИСТЕМА</li>
+      <li class="sidebar-menu-item">
+        <a href="ai-statistics.html">Статистика ИИ</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="settings.html">Настройки</a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="login.html">Выход</a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="main-content">
+    <div class="page-header">
+      <h1 class="page-title">Поиск пациентов</h1>
+    </div>
+
+    <div class="search-panel">
+      <div class="search-form">
+        <div class="search-row">
+          <div class="search-group">
+            <label class="search-label">ФИО пациента</label>
+            <input type="text" class="search-input" id="patientName" placeholder="Введите ФИО пациента">
+          </div>
+
+          <div class="search-group">
+            <label class="search-label">Дата рождения</label>
+            <input type="date" class="search-input" id="birthDate">
+          </div>
+
+          <div class="search-group">
+            <label class="search-label">Полис ОМС</label>
+            <input type="text" class="search-input" id="policyNumber" placeholder="Введите номер полиса">
+          </div>
+        </div>
+
+        <div class="search-row">
+          <div class="search-group">
+            <label class="search-label">Номер карты</label>
+            <input type="text" class="search-input" id="cardNumber" placeholder="Введите номер карты">
+          </div>
+
+          <div class="search-group">
+            <label class="search-label">Телефон</label>
+            <input type="tel" class="search-input" id="phoneNumber" placeholder="+7 (___) ___-__-__">
+          </div>
+
+          <div class="search-group">
+            <label class="search-label">Статус</label>
+            <select class="search-input" id="patientStatus">
+              <option value="">Все</option>
+              <option value="active">Активные</option>
+              <option value="archive">Архивные</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="search-actions">
+        <button class="search-clear" id="clearSearchBtn">Очистить</button>
+        <button class="search-btn" id="searchPatientsBtn">Найти</button>
+      </div>
+
+      <div class="extended-search-toggle" id="extendedSearchToggle">
+        <span class="toggle-icon">+</span> Расширенный поиск
+      </div>
+
+      <div class="extended-search" id="extendedSearch" style="display: none;">
+        <div class="search-row">
+          <div class="search-group">
+            <label class="search-label">Диагноз</label>
+            <input type="text" class="search-input" id="diagnosis" placeholder="Код или название диагноза">
+          </div>
+
+          <div class="search-group">
+            <label class="search-label">Лечащий врач</label>
+            <select class="search-input" id="attendingDoctor">
+              <option value="">Все врачи</option>
+              <option value="1">Иванов И.И.</option>
+              <option value="2">Петров П.П.</option>
+              <option value="3">Сидоров С.С.</option>
+            </select>
+          </div>
+
+          <div class="search-group">
+            <label class="search-label">Период посещения</label>
+            <div class="date-range">
+              <input type="date" class="search-input date-input" id="visitDateFrom" placeholder="От">
+              <input type="date" class="search-input date-input" id="visitDateTo" placeholder="До">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-info">
+      <div class="results-count">Найдено: <span id="resultsCount">5</span> пациентов</div>
+
+      <div class="results-actions">
+        <button class="action-button" id="exportResultsBtn">Экспорт</button>
+        <button class="action-button" id="printResultsBtn">Печать</button>
+      </div>
+    </div>
+
+    <table class="patients-table">
+      <thead>
+      <tr>
+        <th>ФИО</th>
+        <th>Дата рождения</th>
+        <th>Номер карты</th>
+        <th>Полис ОМС</th>
+        <th>Телефон</th>
+        <th>Последнее посещение</th>
+        <th>Действия</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td class="patient-name">Петров Петр Петрович</td>
+        <td>15.04.1985</td>
+        <td>12345</td>
+        <td>1234567890123456</td>
+        <td>+7 (910) 123-45-67</td>
+        <td>05.03.2025</td>
+        <td>
+          <button class="table-btn view-btn" data-id="12345">Карта</button>
+          <button class="table-btn diagnose-btn" data-id="12345">Диагностика</button>
+        </td>
+      </tr>
+      <tr>
+        <td class="patient-name">Сидорова Анна Ивановна</td>
+        <td>23.11.1982</td>
+        <td>12346</td>
+        <td>1234567890123457</td>
+        <td>+7 (915) 987-65-43</td>
+        <td>03.03.2025</td>
+        <td>
+          <button class="table-btn view-btn" data-id="12346">Карта</button>
+          <button class="table-btn diagnose-btn" data-id="12346">Диагностика</button>
+        </td>
+      </tr>
+      <tr>
+        <td class="patient-name">Козлов Сергей Михайлович</td>
+        <td>07.06.1973</td>
+        <td>12347</td>
+        <td>1234567890123458</td>
+        <td>+7 (926) 555-44-33</td>
+        <td>02.03.2025</td>
+        <td>
+          <button class="table-btn view-btn" data-id="12347">Карта</button>
+          <button class="table-btn diagnose-btn" data-id="12347">Диагностика</button>
+        </td>
+      </tr>
+      <tr>
+        <td class="patient-name">Кузнецова Ольга Викторовна</td>
+        <td>12.09.1995</td>
+        <td>12348</td>
+        <td>1234567890123459</td>
+        <td>+7 (903) 111-22-33</td>
+        <td>28.02.2025</td>
+        <td>
+          <button class="table-btn view-btn" data-id="12348">Карта</button>
+          <button class="table-btn diagnose-btn" data-id="12348">Диагностика</button>
+        </td>
+      </tr>
+      <tr>
+        <td class="patient-name">Соколова Елена Андреевна</td>
+        <td>18.03.1990</td>
+        <td>12350</td>
+        <td>1234567890123460</td>
+        <td>+7 (925) 444-55-66</td>
+        <td>20.02.2025</td>
+        <td>
+          <button class="table-btn view-btn" data-id="12350">Карта</button>
+          <button class="table-btn diagnose-btn" data-id="12350">Диагностика</button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <button class="pagination-btn" disabled>&lt;</button>
+      <button class="pagination-btn active">1</button>
+      <button class="pagination-btn">2</button>
+      <button class="pagination-btn">3</button>
+      <button class="pagination-btn">...</button>
+      <button class="pagination-btn">8</button>
+      <button class="pagination-btn">&gt;</button>
+    </div>
+
+    <!-- Блок "Нет результатов" (скрыт по умолчанию) -->
+    <div class="no-results" id="noResults" style="display: none;">
+      <div class="no-results-icon">🔍</div>
+      <div class="no-results-message">По вашему запросу не найдено пациентов</div>
+      <div class="no-results-suggestion">Попробуйте изменить параметры поиска или <a href="#">добавить нового пациента</a></div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/patient-search.js"></script>
+</body>
+</html>

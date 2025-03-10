@@ -1,0 +1,292 @@
+/* patient-search.css */
+
+/* Стили для панели поиска */
+.search-panel {
+    background-color: var(--white);
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.search-form {
+    margin-bottom: 15px;
+}
+
+.search-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.search-row:last-child {
+    margin-bottom: 0;
+}
+
+.search-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 5px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.date-range {
+    display: flex;
+    gap: 10px;
+}
+
+.date-input {
+    flex: 1;
+}
+
+.search-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.search-btn {
+    padding: 8px 20px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    cursor: pointer;
+}
+
+.search-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+.search-clear {
+    padding: 8px 20px;
+    background-color: var(--white);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.extended-search-toggle {
+    margin-top: 15px;
+    font-size: 14px;
+    color: var(--primary-color);
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: var(--white);
+    margin-right: 5px;
+}
+
+.extended-search {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed var(--border-color);
+}
+
+/* Стили для информации о результатах */
+.results-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.results-count {
+    font-size: 14px;
+    color: var(--text-light);
+}
+
+.results-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-button {
+    padding: 6px 12px;
+    background-color: var(--white);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    cursor: pointer;
+}
+
+.action-button:hover {
+    background-color: var(--primary-light);
+}
+
+/* Стили для таблицы пациентов */
+.patients-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--white);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.patients-table th {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+    background-color: var(--light-gray);
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.patients-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.patients-table tr:last-child td {
+    border-bottom: none;
+}
+
+.patients-table tr:hover {
+    background-color: var(--primary-light);
+}
+
+.patient-name {
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+.table-btn {
+    padding: 4px 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-right: 5px;
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.table-btn:last-child {
+    margin-right: 0;
+}
+
+.view-btn {
+    background-color: var(--waiting-color);
+}
+
+.diagnose-btn {
+    background-color: var(--success-color);
+}
+
+/* Пагинация */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination-btn {
+    width: 32px;
+    height: 32px;
+    margin: 0 5px;
+    border: 1px solid var(--border-color);
+    background-color: var(--white);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-btn.active {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Блок "Нет результатов" */
+.no-results {
+    background-color: var(--white);
+    padding: 40px 20px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.no-results-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+    color: var(--text-light);
+}
+
+.no-results-message {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.no-results-suggestion {
+    font-size: 14px;
+    color: var(--text-light);
+}
+
+.no-results-suggestion a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.no-results-suggestion a:hover {
+    text-decoration: underline;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .search-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .results-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .results-count {
+        margin-bottom: 10px;
+    }
+
+    .patients-table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    .pagination-btn {
+        width: 28px;
+        height: 28px;
+        margin: 0 2px;
+    }
+}
