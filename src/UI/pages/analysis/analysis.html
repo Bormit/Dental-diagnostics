@@ -4,11 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DentalAI - Анализ снимков</title>
-  <link rel="stylesheet" href="../styles/main.css">
-  <!-- Сначала основные стили страницы -->
-  <link rel="stylesheet" href="../styles/analysis.css">
-  <!-- Затем стили модальных окон -->
-  <link rel="stylesheet" href="../styles/appointment-window.css">
+  <link rel="stylesheet" href="analysis.css">
 </head>
 <body>
 <div class="header">
@@ -138,11 +134,16 @@
               <div class="image-container">
                 <img src="" alt="Предпросмотр снимка" class="xray-image" id="previewImage">
               </div>
-              <div style="text-align: center;">
+              <div style="text-align: center; margin-top: 15px;">
                 <button class="upload-btn" id="analyzeBtn">Начать анализ</button>
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Здесь будут отображаться результаты анализа -->
+        <div id="analysis-results-section" class="panel" style="display: none;">
+          <!-- Содержимое будет добавлено динамически -->
         </div>
       </div>
 
@@ -152,24 +153,28 @@
             История снимков пациента
           </div>
           <div class="panel-content" id="patientHistoryPanel">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-              <div style="font-size: 14px; font-weight: bold;">15.12.2024</div>
-              <a href="#" style="color: var(--primary-color); font-size: 14px;">Просмотреть</a>
+            <div class="history-item">
+              <div class="history-date">15.12.2024</div>
+              <div class="history-actions">
+                <a href="#" class="history-view">Просмотреть</a>
+              </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-              <div style="font-size: 14px; font-weight: bold;">10.10.2024</div>
-              <a href="#" style="color: var(--primary-color); font-size: 14px;">Просмотреть</a>
+            <div class="history-item">
+              <div class="history-date">10.10.2024</div>
+              <div class="history-actions">
+                <a href="#" class="history-view">Просмотреть</a>
+              </div>
             </div>
 
-            <div style="text-align: center; margin-top: 15px;">
+            <div class="show-all-history">
               <button class="search-btn">Показать все</button>
             </div>
           </div>
 
           <!-- Отображается когда пациент не выбран -->
           <div class="panel-content" id="noHistoryPanel" style="display: none;">
-            <div style="text-align: center; color: var(--text-light); padding: 20px 0;">
+            <div class="empty-history">
               История снимков будет доступна после выбора пациента
             </div>
           </div>
@@ -179,6 +184,7 @@
   </div>
 </div>
 
-<script src="../js/analysis-patient.js"></script>
+<script src="analysis-patient.js"></script>
+<script src="analysis.js"></script>
 </body>
 </html>

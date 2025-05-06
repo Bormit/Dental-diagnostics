@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DentalAI - Главная панель</title>
-  <link rel="stylesheet" href="../styles/main.css">
-  <link rel="stylesheet" href="../styles/dashboard.css">
-  <link rel="stylesheet" href="../styles/appointment-window.css">
+  <link rel="stylesheet" href="../../styles/main.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="../../styles/appointment-window.css">
 </head>
 <body>
 <div class="header">
   <div class="header-logo">DentalAI</div>
   <div class="header-title">ПРИЕМ ПАЦИЕНТОВ</div>
-  <div class="header-user" onclick="window.location.href='acc.html'" style="cursor: pointer;">
+  <div class="header-user" onclick="window.location.href='src/UI/pages/acc/acc.html'" style="cursor: pointer;">
     <div class="user-avatar">ИИ</div>
     <div>Иванов И.И.</div>
   </div>
@@ -25,24 +25,24 @@
         <a href="dashboard.html">План амбулаторного приема</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="analysis.html">Анализ снимков</a>
+        <a href="../analysis/analysis.html">Анализ снимков</a>
       </li>
       <li class="sidebar-menu-item section">ПАЦИЕНТЫ</li>
       <li class="sidebar-menu-item">
-        <a href="patients.html">Карточки пациентов</a>
+        <a href="../patients/patients.html">Карточки пациентов</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="patient-search.html">Поиск пациента</a>
+        <a href="../patient-search/patient-search.html">Поиск пациента</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="new-patient.html">Новый пациент</a>
+        <a href="../new-patient/new-patient.html">Новый пациент</a>
       </li>
       <li class="sidebar-menu-item section">ДОКУМЕНТЫ</li>
       <li class="sidebar-menu-item">
-        <a href="conclusions.html">Заключения</a>
+        <a href="../conclusions/conclusions.html">Заключения</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="prescriptions.html">Назначения</a>
+        <a href="../prescriptions/prescriptions.html">Назначения</a>
       </li>
       <li class="sidebar-menu-item">
         <a href="reports.html">Отчеты</a>
@@ -55,7 +55,7 @@
         <a href="settings.html">Настройки</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="login.html">Выход</a>
+        <a href="../login/login.html">Выход</a>
       </li>
     </ul>
   </div>
@@ -149,10 +149,13 @@
       </div>
       <button>Загрузить и анализировать</button>
     </div>
+
+    <!-- Контейнер для отображения результатов -->
+    <div id="analysis-results" class="analysis-results"></div>
   </div>
 </div>
 
-<link rel="stylesheet" href="../styles/appointment-window.css">
-<script src="../js/dashboard.js"></script>
+<link rel="stylesheet" href="../../styles/appointment-window.css">
+<script src="dashboard.js"></script>
 </body>
 </html>

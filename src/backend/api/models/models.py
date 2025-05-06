@@ -1,0 +1,145 @@
+from src.backend.api.rest  import db
+from datetime import datetime
+from sqlalchemy.dialects.postgresql import JSON, ENUM
+from sqlalchemy import LargeBinary
+
+# Создание ENUM типов
+user_role = ENUM('admin', 'doctor', name='user_role_enum', create_type=True)
+image_status = ENUM('pending', 'analyzed', name='image_status_enum', create_type=True)
+analysis_status = ENUM('pending', 'completed', 'failed', name='analysis_status_enum', create_type=True)
+gender_type = ENUM('male', 'female', 'other', name='gender_enum', create_type=True)
+
+
+# Модели
+class User(db.Model):
+    __tablename__ = 'users'
+
+    user_id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), nullable=False, unique=True)
+    password_hash = db.Column(db.String(256), nullable=False)
+    full_name = db.Column(db.String(100), nullable=False)
+    role = db.Column(user_role, nullable=False)
+    specialty = db.Column(db.String(100))
+
+    # Отношения
+    xrays = db.relationship('Xray', backref='uploaded_by_user')
+    diagnoses = db.relationship('Diagnosis', backref='doctor')
+
+
+class Patient(db.Model):
+    __tablename__ = 'patients'
+
+    patient_id = db.Column(db.Integer, primary_key=True)
+    full_name = db.Column(db.String(100), nullable=False)
+    birth_date = db.Column(db.Date, nullable=False)
+    gender = db.Column(gender_type, nullable=False)
+    phone = db.Column(db.String(20))
+    email = db.Column(db.String(100))
+
+    # Отношения
+    xrays = db.relationship('Xray', backref='patient')
+    diagnoses = db.relationship('Diagnosis', backref='patient')
+
+
+class NeuralModel(db.Model):
+    __tablename__ = 'neural_models'
+
+    model_id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    version = db.Column(db.String(20), nullable=False)
+    architecture = db.Column(db.String(50))
+    training_data = db.Column(JSON)
+    is_active = db.Column(db.Boolean, nullable=False, default=False)
+
+    # Отношения
+    parameters = db.relationship('ModelParameter', backref='model')
+    metrics = db.relationship('ModelPathologyMetric', backref='model')
+    analyses = db.relationship('Analysis', backref='model')
+
+
+class ModelParameter(db.Model):
+    __tablename__ = 'model_parameters'
+
+    param_id = db.Column(db.Integer, primary_key=True)
+    model_id = db.Column(db.Integer, db.ForeignKey('neural_models.model_id', ondelete='CASCADE'), nullable=False)
+    loss_weights = db.Column(JSON)
+    hyperparameters = db.Column(JSON)
+    calibration_method = db.Column(db.String(50))
+
+
+class Pathology(db.Model):
+    __tablename__ = 'pathologies'
+
+    pathology_id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    code = db.Column(db.String(20), nullable=False, unique=True)
+    description = db.Column(db.Text)
+
+    # Отношения
+    metrics = db.relationship('ModelPathologyMetric', backref='pathology')
+    interpretation_results = db.relationship('InterpretationResult', backref='pathology')
+
+
+class ModelPathologyMetric(db.Model):
+    __tablename__ = 'model_pathology_metrics'
+
+    metric_id = db.Column(db.Integer, primary_key=True)
+    model_id = db.Column(db.Integer, db.ForeignKey('neural_models.model_id', ondelete='CASCADE'), nullable=False)
+    pathology_id = db.Column(db.Integer, db.ForeignKey('pathologies.pathology_id'), nullable=False)
+    sensitivity = db.Column(db.Float)
+    specificity = db.Column(db.Float)
+    f_measure = db.Column(db.Float)
+
+
+class Xray(db.Model):
+    __tablename__ = 'xrays'
+
+    xray_id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.patient_id', ondelete='CASCADE'), nullable=False)
+    uploaded_by = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    file_path = db.Column(db.String(255), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    upload_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    status = db.Column(image_status, nullable=False, default='pending')
+
+    # Отношения
+    analyses = db.relationship('Analysis', backref='xray')
+
+
+class Analysis(db.Model):
+    __tablename__ = 'analyses'
+
+    analysis_id = db.Column(db.Integer, primary_key=True)
+    xray_id = db.Column(db.Integer, db.ForeignKey('xrays.xray_id', ondelete='CASCADE'), nullable=False)
+    model_id = db.Column(db.Integer, db.ForeignKey('neural_models.model_id'), nullable=False)
+    analysis_date = db.Column(db.DateTime, default=datetime.utcnow)
+    execution_time = db.Column(db.Float)
+    status = db.Column(analysis_status, default='pending')
+
+    # Отношения
+    interpretation_results = db.relationship('InterpretationResult', backref='analysis')
+
+
+class InterpretationResult(db.Model):
+    __tablename__ = 'interpretation_results'
+
+    result_id = db.Column(db.Integer, primary_key=True)
+    analysis_id = db.Column(db.Integer, db.ForeignKey('analyses.analysis_id', ondelete='CASCADE'), nullable=False)
+    pathology_id = db.Column(db.Integer, db.ForeignKey('pathologies.pathology_id'), nullable=False)
+    probability = db.Column(db.Float, nullable=False)
+    region_mask = db.Column(LargeBinary)  # правильный тип для бинарных данных в PostgreSQL
+    description = db.Column(db.Text)
+
+    # Отношения
+    diagnoses = db.relationship('Diagnosis', backref='result')
+
+
+class Diagnosis(db.Model):
+    __tablename__ = 'diagnoses'
+
+    diagnosis_id = db.Column(db.Integer, primary_key=True)
+    result_id = db.Column(db.Integer, db.ForeignKey('interpretation_results.result_id'), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.patient_id', ondelete='CASCADE'), nullable=False)
+    diagnosis_text = db.Column(db.Text, nullable=False)
+    treatment_plan = db.Column(db.Text)
