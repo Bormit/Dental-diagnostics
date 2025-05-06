@@ -22,49 +22,20 @@
   </div>
 
   <div class="login-form">
-    <div class="form-title">Место оказания медуслуг</div>
+    <div class="form-title">Вход в систему</div>
 
     <div class="form-group">
-      <div class="select-wrapper">
-        <select id="clinic">
-          <option value="" disabled selected>СП1</option>
-          <option value="sp1">Стоматологическая поликлиника №1</option>
-          <option value="sp2">Стоматологическая поликлиника №2</option>
-          <option value="sp3">Стоматологическая клиника "ДентаМед"</option>
-        </select>
-      </div>
-      <div class="error-message" id="clinic-error">Пожалуйста, выберите место оказания услуг</div>
+      <input type="text" id="username" placeholder="Логин" autocomplete="username">
+      <div class="error-message" id="username-error">Пожалуйста, введите логин</div>
     </div>
 
     <div class="form-group">
-      <div class="select-wrapper">
-        <select id="position">
-          <option value="" disabled selected>ДОЛЖНОСТЬ</option>
-          <option value="dentist">Врач-стоматолог терапевт</option>
-          <option value="surgeon">Врач-стоматолог хирург</option>
-          <option value="ortho">Врач-стоматолог ортопед</option>
-          <option value="ortho_dent">Врач-ортодонт</option>
-        </select>
-      </div>
-      <div class="error-message" id="position-error">Пожалуйста, выберите должность</div>
-    </div>
-
-    <div class="role-title">Основная роль</div>
-
-    <div class="form-group">
-      <div class="select-wrapper">
-        <select id="role">
-          <option value="" disabled selected>Врач</option>
-          <option value="doctor">Врач</option>
-          <option value="head">Заведующий отделением</option>
-          <option value="admin">Администратор</option>
-        </select>
-      </div>
-      <div class="error-message" id="role-error">Пожалуйста, выберите роль</div>
+      <input type="password" id="password" placeholder="Пароль" autocomplete="current-password">
+      <div class="error-message" id="password-error">Пожалуйста, введите пароль</div>
     </div>
 
     <button type="button" id="login-btn" class="submit-btn">
-      <span class="btn-text">Продолжить</span>
+      <span class="btn-text">Войти</span>
       <span class="btn-icon">→</span>
     </button>
   </div>

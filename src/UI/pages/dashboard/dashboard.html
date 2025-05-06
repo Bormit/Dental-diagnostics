@@ -12,9 +12,9 @@
 <div class="header">
   <div class="header-logo">DentalAI</div>
   <div class="header-title">ПРИЕМ ПАЦИЕНТОВ</div>
-  <div class="header-user" onclick="window.location.href='src/UI/pages/acc/acc.html'" style="cursor: pointer;">
+  <div class="header-user" onclick="window.location.href='../acc/acc.html'" style="cursor: pointer;">
     <div class="user-avatar">ИИ</div>
-    <div>Иванов И.И.</div>
+    <div id="userFullName">Иванов И.И.</div>
   </div>
 </div>
 
@@ -45,14 +45,14 @@
         <a href="../prescriptions/prescriptions.html">Назначения</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="reports.html">Отчеты</a>
+        <a href="../reports/reports.html">Отчеты</a>
       </li>
       <li class="sidebar-menu-item section">СИСТЕМА</li>
       <li class="sidebar-menu-item">
-        <a href="ai-statistics.html">Статистика ИИ</a>
+        <a href="../ai-statistics/ai-statistics.html">Статистика ИИ</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="settings.html">Настройки</a>
+        <a href="../settings/settings.html">Настройки</a>
       </li>
       <li class="sidebar-menu-item">
         <a href="../login/login.html">Выход</a>
@@ -93,69 +93,22 @@
 
     <!-- Оригинальный список пациентов -->
     <div class="patient-list">
-      <div class="patient-category">
-        <div class="category-header category-emergency">ЭКСТРЕННЫЕ 1</div>
-        <div class="patient-item">
-          <div class="patient-time">10:30</div>
-          <div class="patient-info">
-            <div class="patient-name">Петров Иван Сергеевич <span class="status-badge status-emergency">экстренный</span></div>
-            <div class="patient-details">М, 42 года • первичный</div>
-          </div>
-          <div class="patient-actions">
-            <button class="start-appointment-btn" data-id="12345" data-name="Петров Петр Петрович" data-card="P-12345">Начать прием</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="patient-category">
-        <div class="category-header category-waiting">ОЖИДАЮЩИЕ 3</div>
-        <div class="patient-item">
-          <div class="patient-time">11:00</div>
-          <div class="patient-info">
-            <div class="patient-name">Сидорова Анна Ивановна</div>
-            <div class="patient-details">Ж, 35 лет • повторный</div>
-          </div>
-          <div class="patient-actions">
-            <button>Начать прием</button>
-          </div>
-        </div>
-        <div class="patient-item">
-          <div class="patient-time">11:30</div>
-          <div class="patient-info">
-            <div class="patient-name">Козлов Сергей Михайлович</div>
-            <div class="patient-details">М, 51 год • первичный</div>
-          </div>
-          <div class="patient-actions">
-            <button>Начать прием</button>
-          </div>
-        </div>
-        <div class="patient-item">
-          <div class="patient-time">12:00</div>
-          <div class="patient-info">
-            <div class="patient-name">Кузнецова Ольга Викторовна</div>
-            <div class="patient-details">Ж, 29 лет • первичный</div>
-          </div>
-          <div class="patient-actions">
-            <button>Начать прием</button>
-          </div>
-        </div>
-      </div>
+      <!-- Пациенты будут загружены динамически из JS -->
     </div>
-
-    <div class="xray-upload">
-      <h2>Быстрый анализ рентгеновского снимка</h2>
-      <div class="upload-zone">
-        <p>Перетащите файл снимка или нажмите для выбора</p>
-      </div>
-      <button>Загрузить и анализировать</button>
-    </div>
-
-    <!-- Контейнер для отображения результатов -->
-    <div id="analysis-results" class="analysis-results"></div>
   </div>
 </div>
 
 <link rel="stylesheet" href="../../styles/appointment-window.css">
 <script src="dashboard.js"></script>
+<script>
+  // Отображение ФИО пользователя из localStorage
+  document.addEventListener('DOMContentLoaded', function() {
+    var fullName = localStorage.getItem('user_fullname');
+    if (fullName) {
+      var el = document.getElementById('userFullName');
+      if (el) el.textContent = fullName;
+    }
+  });
+</script>
 </body>
 </html>

@@ -1,83 +1,60 @@
 document.addEventListener('DOMContentLoaded', function() {
     const loginBtn = document.getElementById('login-btn');
 
-    loginBtn.addEventListener('click', function() {
+    // Новый обработчик событий авторизации
+    async function handleLoginEvent() {
         let isValid = true;
-        const clinic = document.getElementById('clinic');
-        const position = document.getElementById('position');
-        const role = document.getElementById('role');
+        const username = document.getElementById('username');
+        const password = document.getElementById('password');
 
-        // Проверка выбора клиники
-        if (clinic.value === '' || clinic.selectedIndex === 0) {
-            document.getElementById('clinic-error').style.display = 'block';
+        if (!username.value.trim()) {
+            document.getElementById('username-error').style.display = 'block';
             isValid = false;
         } else {
-            document.getElementById('clinic-error').style.display = 'none';
+            document.getElementById('username-error').style.display = 'none';
         }
 
-        // Проверка выбора должности
-        if (position.value === '' || position.selectedIndex === 0) {
-            document.getElementById('position-error').style.display = 'block';
+        if (!password.value.trim()) {
+            document.getElementById('password-error').style.display = 'block';
             isValid = false;
         } else {
-            document.getElementById('position-error').style.display = 'none';
-        }
-
-        // Проверка выбора роли
-        if (role.value === '' || role.selectedIndex === 0) {
-            document.getElementById('role-error').style.display = 'block';
-            isValid = false;
-        } else {
-            document.getElementById('role-error').style.display = 'none';
+            document.getElementById('password-error').style.display = 'none';
         }
 
         if (isValid) {
-            // В реальном приложении здесь может быть AJAX-запрос на сервер для авторизации
-            // После успешной авторизации перенаправляем на главную страницу
-            window.location.href = "dashboard.html";
+            try {
+                const resp = await fetch('http://localhost:8000/api/auth/login', { // Явный адрес backend
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        username: username.value.trim(),
+                        password: password.value
+                    })
+                });
+                const data = await resp.json();
+                if (resp.ok && data.access_token) {
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    // Используем только поле full_name
+                    if (data.user && data.user.full_name) {
+                        localStorage.setItem('user_fullname', data.user.full_name);
+                    }
+                    window.location.href = "../dashboard/dashboard.html";
+                } else {
+                    alert(data.error || 'Ошибка авторизации');
+                }
+            } catch (e) {
+                alert('Ошибка соединения с сервером');
+            }
         }
-    });
+    }
 
-    // Дополнительно: очищаем ошибки при изменении селектов
-    const selectElements = document.querySelectorAll('select');
-    selectElements.forEach(select => {
-        select.addEventListener('change', function() {
-            const errorId = this.id + '-error';
-            document.getElementById(errorId).style.display = 'none';
+    loginBtn.addEventListener('click', handleLoginEvent);
+
+    // Очищаем ошибки при вводе
+    ['username', 'password'].forEach(id => {
+        document.getElementById(id).addEventListener('input', function() {
+            document.getElementById(id + '-error').style.display = 'none';
         });
     });
-});
-
-document.getElementById('login-btn').addEventListener('click', function() {
-  // Базовая валидация
-  let isValid = true;
-  const clinic = document.getElementById('clinic');
-  const position = document.getElementById('position');
-  const role = document.getElementById('role');
-  
-  if (clinic.value === "") {
-    document.getElementById('clinic-error').style.display = 'block';
-    isValid = false;
-  } else {
-    document.getElementById('clinic-error').style.display = 'none';
-  }
-  
-  if (position.value === "") {
-    document.getElementById('position-error').style.display = 'block';
-    isValid = false;
-  } else {
-    document.getElementById('position-error').style.display = 'none';
-  }
-  
-  if (role.value === "") {
-    document.getElementById('role-error').style.display = 'block';
-    isValid = false;
-  } else {
-    document.getElementById('role-error').style.display = 'none';
-  }
-  
-  if (isValid) {
-    // Успешная авторизация, переходим в личный кабинет
-    window.location.href = 'acc.html';
-  }
 });

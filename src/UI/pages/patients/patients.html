@@ -11,9 +11,9 @@
 <div class="header">
   <div class="header-logo">DentalAI</div>
   <div class="header-title">КАРТОТЕКА ПАЦИЕНТОВ</div>
-  <div class="header-user" onclick="window.location.href='acc.html'" style="cursor: pointer;">
+  <div class="header-user" onclick="window.location.href='../acc/acc.html'" style="cursor: pointer;">
     <div class="user-avatar">ИИ</div>
-    <div>Иванов И.И.</div>
+    <div id="userFullName">Иванов И.И.</div>
   </div>
 </div>
 
@@ -76,7 +76,10 @@
     </div>
 
     <div class="filter-panel" id="filterPanel" style="display: none;">
-      <!-- Содержимое панели фильтров -->
+      <!-- Здесь можно добавить фильтры по статусу, дате рождения, дате последнего посещения и т.д. -->
+      <div style="color: #888; font-size: 14px;">
+        Фильтры пока не реализованы. Здесь можно добавить фильтрацию по статусу, дате рождения, дате последнего посещения и другим параметрам.
+      </div>
     </div>
 
     <table class="patients-table">
@@ -111,9 +114,60 @@
 
 <!-- Модальное окно добавления пациента -->
 <div class="modal" id="addPatientModal">
-  <!-- Содержимое модального окна -->
+  <div class="modal-content">
+    <div class="modal-header">
+      <span class="modal-title">Добавить пациента</span>
+      <button class="close-button" id="closeModalBtn">&times;</button>
+    </div>
+    <form id="addPatientForm">
+      <div>
+        <label>ФИО</label>
+        <input type="text" id="patientName" required>
+      </div>
+      <div>
+        <label>Дата рождения</label>
+        <input type="date" id="patientDob" required>
+      </div>
+      <div>
+        <label>Номер карты</label>
+        <input type="text" id="patientCard" required>
+      </div>
+      <div>
+        <label>Телефон</label>
+        <input type="tel" id="patientPhone" required>
+      </div>
+      <div>
+        <label>Последний диагноз</label>
+        <input type="text" id="patientDiagnosis">
+      </div>
+      <div>
+        <label>Последнее посещение</label>
+        <input type="date" id="patientLastVisit">
+      </div>
+      <div>
+        <label>Статус</label>
+        <select id="patientStatus">
+          <option value="active">Активен</option>
+          <option value="waiting">В ожидании</option>
+          <option value="inactive">Неактивен</option>
+        </select>
+      </div>
+      <div style="margin-top:15px; text-align:right;">
+        <button type="submit" class="apply-button">Добавить</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script src="patients.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var fullName = localStorage.getItem('user_fullname');
+    if (fullName) {
+      var el = document.getElementById('userFullName');
+      if (el) el.textContent = fullName;
+    }
+  });
+</script>
 </body>
 </html>

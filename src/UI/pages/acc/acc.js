@@ -6,7 +6,7 @@ function generateSidebar(role) {
   // Общие пункты меню
   menuHTML += `
     <li class="sidebar-menu-item">
-      <a href="dashboard.html">Главная</a>
+      <a href="../dashboard/dashboard.html">Главная</a>
     </li>
   `;
 
@@ -15,31 +15,31 @@ function generateSidebar(role) {
     case 'doctor':
       menuHTML += `
         <li class="sidebar-menu-item active">
-          <a href="#">Личный кабинет</a>
+          <a href="../acc/acc.html">Личный кабинет</a>
         </li>
         <li class="sidebar-menu-item section">ПАЦИЕНТЫ</li>
         <li class="sidebar-menu-item">
-          <a href="#">Расписание приемов</a>
+          <a href="../acc/schedule.html">Расписание приемов</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Мои пациенты</a>
+          <a href="../acc/patients.html">Мои пациенты</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Поиск пациента</a>
+          <a href="../acc/search.html">Поиск пациента</a>
         </li>
         <li class="sidebar-menu-item section">ДИАГНОСТИКА</li>
         <li class="sidebar-menu-item">
-          <a href="#">Анализ снимков</a>
+          <a href="../acc/analysis.html">Анализ снимков</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">История диагностики</a>
+          <a href="../acc/history.html">История диагностики</a>
         </li>
         <li class="sidebar-menu-item section">ДОКУМЕНТЫ</li>
         <li class="sidebar-menu-item">
-          <a href="#">Заключения</a>
+          <a href="../acc/conclusions.html">Заключения</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Назначения</a>
+          <a href="../acc/appointments.html">Назначения</a>
         </li>
       `;
       break;
@@ -47,27 +47,27 @@ function generateSidebar(role) {
     case 'head-doctor':
       menuHTML += `
         <li class="sidebar-menu-item active">
-          <a href="#">Личный кабинет</a>
+          <a href="../acc/acc.html">Личный кабинет</a>
         </li>
         <li class="sidebar-menu-item section">УПРАВЛЕНИЕ</li>
         <li class="sidebar-menu-item">
-          <a href="#">Врачи отделения</a>
+          <a href="../acc/doctors.html">Врачи отделения</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Статистика отделения</a>
+          <a href="../acc/statistics.html">Статистика отделения</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Производительность ИИ</a>
+          <a href="../acc/ai-performance.html">Производительность ИИ</a>
         </li>
         <li class="sidebar-menu-item section">ОТЧЕТЫ</li>
         <li class="sidebar-menu-item">
-          <a href="#">Ежедневные отчеты</a>
+          <a href="../acc/daily-reports.html">Ежедневные отчеты</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Отчеты по врачам</a>
+          <a href="../acc/doctor-reports.html">Отчеты по врачам</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Отчеты по диагнозам</a>
+          <a href="../acc/diagnosis-reports.html">Отчеты по диагнозам</a>
         </li>
       `;
       break;
@@ -75,30 +75,30 @@ function generateSidebar(role) {
     case 'admin':
       menuHTML += `
         <li class="sidebar-menu-item active">
-          <a href="#">Личный кабинет</a>
+          <a href="../acc/acc.html">Личный кабинет</a>
         </li>
         <li class="sidebar-menu-item section">УПРАВЛЕНИЕ</li>
         <li class="sidebar-menu-item">
-          <a href="#">Пользователи</a>
+          <a href="../acc/users.html">Пользователи</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Роли и доступ</a>
+          <a href="../acc/roles.html">Роли и доступ</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Журнал действий</a>
+          <a href="../acc/log.html">Журнал действий</a>
         </li>
         <li class="sidebar-menu-item section">СИСТЕМА</li>
         <li class="sidebar-menu-item">
-          <a href="#">Статистика системы</a>
+          <a href="../acc/system-stats.html">Статистика системы</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Обновления</a>
+          <a href="../acc/updates.html">Обновления</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Резервное копирование</a>
+          <a href="../acc/backup.html">Резервное копирование</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Настройки ИИ</a>
+          <a href="../acc/ai-settings.html">Настройки ИИ</a>
         </li>
       `;
       break;
@@ -106,27 +106,27 @@ function generateSidebar(role) {
     case 'registrar':
       menuHTML += `
         <li class="sidebar-menu-item active">
-          <a href="#">Личный кабинет</a>
+          <a href="../acc/acc.html">Личный кабинет</a>
         </li>
         <li class="sidebar-menu-item section">ЗАПИСИ</li>
         <li class="sidebar-menu-item">
-          <a href="#">Расписание врачей</a>
+          <a href="../acc/schedule.html">Расписание врачей</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Запись на прием</a>
+          <a href="../acc/appointment.html">Запись на прием</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Журнал записей</a>
+          <a href="../acc/record-log.html">Журнал записей</a>
         </li>
         <li class="sidebar-menu-item section">ПАЦИЕНТЫ</li>
         <li class="sidebar-menu-item">
-          <a href="#">Карточки пациентов</a>
+          <a href="../acc/patient-cards.html">Карточки пациентов</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Поиск пациента</a>
+          <a href="../acc/search.html">Поиск пациента</a>
         </li>
         <li class="sidebar-menu-item">
-          <a href="#">Новый пациент</a>
+          <a href="../acc/new-patient.html">Новый пациент</a>
         </li>
       `;
       break;
@@ -136,10 +136,10 @@ function generateSidebar(role) {
   menuHTML += `
     <li class="sidebar-menu-item section">НАСТРОЙКИ</li>
     <li class="sidebar-menu-item">
-      <a href="#">Мой профиль</a>
+      <a href="../acc/profile.html">Мой профиль</a>
     </li>
     <li class="sidebar-menu-item">
-      <a href="#">Выход</a>
+      <a href="../acc/logout.html">Выход</a>
     </li>
   `;
 
@@ -169,14 +169,44 @@ function switchRole(role) {
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-  // Устанавливаем начальную роль
-  generateSidebar('doctor');
+  // Получаем пользователя из localStorage
+  let user = null;
+  let role = 'doctor'; // fallback по умолчанию
+  try {
+    user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.role) {
+      role = user.role;
+    }
+  } catch (e) {
+    // fallback doctor
+  }
 
-  // Добавляем обработчики для переключения ролей
+  // Генерируем меню и активируем контент по роли пользователя
+  generateSidebar(role);
+
+  // Скрываем все контенты ролей
+  document.querySelectorAll('.role-content').forEach(content => {
+    content.classList.remove('active');
+  });
+  // Показываем нужный контент
+  const roleContent = document.getElementById(`${role}-content`);
+  if (roleContent) {
+    roleContent.classList.add('active');
+  }
+
+  // Обновляем активную вкладку (если есть демонстрация ролей)
+  document.querySelectorAll('.role-tab').forEach(tab => {
+    tab.classList.remove('active');
+    if (tab.getAttribute('data-role') === role) {
+      tab.classList.add('active');
+    }
+  });
+
+  // Добавляем обработчики для ручного переключения ролей (только для демонстрации)
   document.querySelectorAll('.role-tab').forEach(tab => {
     tab.addEventListener('click', function() {
-      const role = this.getAttribute('data-role');
-      switchRole(role);
+      const newRole = this.getAttribute('data-role');
+      switchRole(newRole);
     });
   });
 });

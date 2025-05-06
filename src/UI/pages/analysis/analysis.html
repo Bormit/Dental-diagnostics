@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DentalAI - Анализ снимков</title>
-  <link rel="stylesheet" href="analysis.css">
+  <link rel="stylesheet" href="../analysis/analysis.css">
 </head>
 <body>
 <div class="header">
   <div class="header-logo">DentalAI</div>
   <div class="header-title">АНАЛИЗ СНИМКА</div>
-  <div class="header-user" onclick="window.location.href='acc.html'" style="cursor: pointer;">
+  <div class="header-user" onclick="window.location.href='../acc/acc.html'" style="cursor: pointer;">
     <div class="user-avatar">ИИ</div>
-    <div>Иванов И.И.</div>
+    <div id="userFullName">Иванов И.И.</div>
   </div>
 </div>
 
@@ -20,40 +20,40 @@
   <div class="sidebar">
     <ul class="sidebar-menu">
       <li class="sidebar-menu-item">
-        <a href="dashboard.html">План амбулаторного приема</a>
+        <a href="../dashboard/dashboard.html">План амбулаторного приема</a>
       </li>
       <li class="sidebar-menu-item active">
-        <a href="analysis.html">Анализ снимков</a>
+        <a href="../analysis/analysis.html">Анализ снимков</a>
       </li>
       <li class="sidebar-menu-item section">ПАЦИЕНТЫ</li>
       <li class="sidebar-menu-item">
-        <a href="patients.html">Карточки пациентов</a>
+        <a href="../patients/patients.html">Карточки пациентов</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="patient-search.html">Поиск пациента</a>
+        <a href="../patients/patient-search.html">Поиск пациента</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="new-patient.html">Новый пациент</a>
+        <a href="../patients/new-patient.html">Новый пациент</a>
       </li>
       <li class="sidebar-menu-item section">ДОКУМЕНТЫ</li>
       <li class="sidebar-menu-item">
-        <a href="conclusions.html">Заключения</a>
+        <a href="../documents/conclusions.html">Заключения</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="prescriptions.html">Назначения</a>
+        <a href="../documents/prescriptions.html">Назначения</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="reports.html">Отчеты</a>
+        <a href="../documents/reports.html">Отчеты</a>
       </li>
       <li class="sidebar-menu-item section">СИСТЕМА</li>
       <li class="sidebar-menu-item">
-        <a href="ai-statistics.html">Статистика ИИ</a>
+        <a href="../system/ai-statistics.html">Статистика ИИ</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="settings.html">Настройки</a>
+        <a href="../system/settings.html">Настройки</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="login.html">Выход</a>
+        <a href="../system/login.html">Выход</a>
       </li>
     </ul>
   </div>
@@ -68,22 +68,22 @@
       <div class="search-form">
         <div class="search-group">
           <label class="search-label">ФИО пациента</label>
-          <input type="text" class="search-input" id="patientName" placeholder="Введите ФИО пациента" value="Петров Петр Петрович">
+          <input type="text" class="search-input" id="patientName" placeholder="Введите ФИО пациента">
         </div>
         <div class="search-group">
           <label class="search-label">Дата рождения</label>
-          <input type="date" class="search-input" id="birthDate" value="1985-04-15">
+          <input type="date" class="search-input" id="birthDate">
         </div>
         <div class="search-group">
           <label class="search-label">Пол</label>
           <select class="search-input" id="gender">
-            <option value="male" selected>Мужской</option>
+            <option value="male">Мужской</option>
             <option value="female">Женский</option>
           </select>
         </div>
         <div class="search-group">
           <label class="search-label">Номер карты</label>
-          <input type="text" class="search-input" id="cardNumber" placeholder="Введите номер карты" value="12345">
+          <input type="text" class="search-input" id="cardNumber" placeholder="Введите номер карты">
         </div>
       </div>
       <div class="search-actions">
@@ -94,19 +94,19 @@
 
     <!-- Информация о пациенте (отображается после поиска/выбора пациента) -->
     <div class="patient-info" id="patientInfoPanel">
-      <div class="patient-name">Петров Петр Петрович</div>
+      <div class="patient-name"></div>
       <div class="patient-details">
         <div class="patient-detail-group">
           <div class="patient-detail-label">Дата рождения:</div>
-          <div class="patient-detail-value">15.04.1985</div>
+          <div class="patient-detail-value"></div>
         </div>
         <div class="patient-detail-group">
           <div class="patient-detail-label">Пол:</div>
-          <div class="patient-detail-value">Мужской</div>
+          <div class="patient-detail-value"></div>
         </div>
         <div class="patient-detail-group">
           <div class="patient-detail-label">Карта №:</div>
-          <div class="patient-detail-value">12345</div>
+          <div class="patient-detail-value"></div>
         </div>
       </div>
     </div>
@@ -184,7 +184,16 @@
   </div>
 </div>
 
-<script src="analysis-patient.js"></script>
-<script src="analysis.js"></script>
+<script src="../analysis/analysis-patient.js"></script>
+<script src="../analysis/analysis.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var fullName = localStorage.getItem('user_fullname');
+    if (fullName) {
+      var el = document.getElementById('userFullName');
+      if (el) el.textContent = fullName;
+    }
+  });
+</script>
 </body>
 </html>

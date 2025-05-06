@@ -3,6 +3,12 @@
  * Основной модуль для управления страницей амбулаторного приема
  */
 
+// Глобальная переменная для текущей даты
+let currentDate = new Date(); // Теперь всегда текущая дата
+
+// Глобальная переменная для хранения последнего списка пациентов
+let lastLoadedPatients = [];
+
 // Основная инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
   // Инициализация основных компонентов
@@ -10,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initPatientSearch();
   initStartAppointmentButtons(); // Обновлено для поддержки расширенной функциональности
   initNewPatientButton();
-  initUploadZone();
+  loadPatientsFromDB(currentDate); // Передаем дату
 });
 
 /**
@@ -20,89 +26,8 @@ function initNewPatientButton() {
   const newPatientBtn = document.getElementById('newPatientBtn');
   if (newPatientBtn) {
     newPatientBtn.addEventListener('click', function() {
-      window.location.href = 'new-patient.html';
+      window.location.href = '../new-patient/new-patient.html';
     });
-  }
-}
-
-/**
- * Инициализация загрузки файлов
- */
-function initUploadZone() {
-  const uploadZone = document.querySelector('.upload-zone');
-  if (uploadZone) {
-    uploadZone.addEventListener('click', function () {
-      // Создаем элемент выбора файла
-      const fileInput = document.createElement('input');
-      fileInput.type = 'file';
-      fileInput.accept = 'image/*'; // Разрешаем только изображения
-      fileInput.click();
-
-      fileInput.addEventListener('change', function () {
-        if (this.files && this.files[0]) {
-          const file = this.files[0];
-
-          // Отображаем имя файла
-          const fileName = file.name;
-          alert(`Файл "${fileName}" выбран. Начинается загрузка...`);
-
-          // Отправляем файл на сервер
-          uploadFileToServer(file);
-        }
-      });
-    });
-  }
-}
-
-/**
- * Отправка файла на сервер
- */
-function uploadFileToServer(file) {
-  const formData = new FormData();
-  formData.append('image', file);
-
-  // Отправляем POST-запрос на сервер
-  fetch('http://localhost:8000/api/analyze', {
-    method: 'POST',
-    body: formData,
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`Ошибка сервера: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((data) => {
-      console.log('Результаты анализа:', data);
-
-      // Если есть визуализация, отображаем ее
-      if (data.visualization_url) {
-        displayVisualization(data.visualization_url);
-      } else {
-        alert('Анализ завершен, но визуализация недоступна.');
-      }
-    })
-    .catch((error) => {
-      console.error('Ошибка при загрузке файла:', error);
-      alert('Ошибка при загрузке файла. Проверьте сервер.');
-    });
-}
-
-/**
- * Отображение визуализации результата
- */
-function displayVisualization(visualizationUrl) {
-  const resultContainer = document.createElement('div');
-  resultContainer.className = 'result-container';
-  resultContainer.innerHTML = `
-    <h3>Результаты анализа</h3>
-    <img src="${visualizationUrl}" alt="Визуализация анализа" style="max-width: 100%; border: 1px solid #ccc; padding: 10px;">
-  `;
-
-  // Добавляем контейнер в DOM
-  const mainContent = document.querySelector('.main-content');
-  if (mainContent) {
-    mainContent.appendChild(resultContainer);
   }
 }
 
@@ -290,16 +215,16 @@ function startAppointmentByType(type, patientId, patientName, patientCard) {
   // Перенаправление на соответствующую страницу
   switch (type) {
     case 'examination':
-      window.location.href = 'examination.html';
+      window.location.href = '../examination/examination.html';
       break;
     case 'analysis':
-      window.location.href = 'analysis.html';
+      window.location.href = '../analysis/analysis.html';
       break;
     case 'treatment':
-      window.location.href = 'treatment.html';
+      window.location.href = '../treatment/treatment.html';
       break;
     case 'consultation':
-      window.location.href = 'consultation.html';
+      window.location.href = '../consultation/consultation.html';
       break;
   }
 }
@@ -346,22 +271,19 @@ function initCalendarNavigation() {
   if (!prevArrow || !nextArrow || !dateDisplay) return;
 
   // Текущая активная дата
-  let currentDate = new Date('2025-03-05'); // Начальная дата
-
-  // Инициализируем отображение даты
   updateDateDisplay();
 
   // Обработчики для стрелок
   prevArrow.addEventListener('click', function() {
     currentDate.setDate(currentDate.getDate() - 1);
     updateDateDisplay();
-    loadAppointmentsForDate();
+    loadPatientsFromDB(currentDate); // Загружаем пациентов на новую дату
   });
 
   nextArrow.addEventListener('click', function() {
     currentDate.setDate(currentDate.getDate() + 1);
     updateDateDisplay();
-    loadAppointmentsForDate();
+    loadPatientsFromDB(currentDate); // Загружаем пациентов на новую дату
   });
 
   // Стилизуем стрелки
@@ -388,33 +310,6 @@ function initCalendarNavigation() {
       dateDisplay.classList.remove('weekend');
     }
   }
-
-  // Загрузка приемов на выбранную дату
-  function loadAppointmentsForDate() {
-    const patientList = document.querySelector('.patient-list');
-    if (!patientList) return;
-
-    // Индикатор загрузки
-    patientList.classList.add('loading');
-
-    // Имитация загрузки данных (заменить на реальный запрос API)
-    setTimeout(() => {
-      patientList.classList.remove('loading');
-
-      // Обновление счетчиков (для демонстрации)
-      const day = currentDate.getDay();
-      const waitingCount = document.querySelector('.category-waiting');
-      const emergencyCount = document.querySelector('.category-emergency');
-
-      if (waitingCount) {
-        waitingCount.textContent = `ОЖИДАЮЩИЕ ${day + 1}`;
-      }
-
-      if (emergencyCount) {
-        emergencyCount.textContent = `ЭКСТРЕННЫЕ ${Math.max(0, Math.floor(Math.random() * 3))}`;
-      }
-    }, 300);
-  }
 }
 
 /**
@@ -427,14 +322,17 @@ function initPatientSearch() {
   const searchButton = document.getElementById('searchButton');
   const patientList = document.querySelector('.patient-list');
   const searchResults = document.getElementById('searchResults');
-  const patientItems = document.querySelectorAll('.patient-item');
   const noResults = document.querySelector('.no-results');
 
   // Обработчики событий
-  searchButton.addEventListener('click', performSearch);
+  searchButton.addEventListener('click', function(e) {
+    e.preventDefault();
+    performSearch();
+  });
 
   searchInput.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
+      e.preventDefault();
       performSearch();
     }
   });
@@ -445,7 +343,7 @@ function initPatientSearch() {
     }
   });
 
-  // Функция поиска
+  // Функция поиска по ФИО
   function performSearch() {
     const searchText = searchInput.value.trim().toLowerCase();
 
@@ -455,36 +353,32 @@ function initPatientSearch() {
     }
 
     // Очищаем предыдущие результаты
-    const existingResults = searchResults.querySelectorAll('.patient-item');
+    const category = searchResults.querySelector('.patient-category');
+    const existingResults = category.querySelectorAll('.patient-item');
     existingResults.forEach(item => item.remove());
 
     // Скрываем обычный список и показываем результаты
     patientList.style.display = 'none';
     searchResults.style.display = 'block';
 
-    // Ищем пациентов по ФИО
-    let foundPatients = [];
-    patientItems.forEach(item => {
-      const patientName = item.querySelector('.patient-name').textContent.toLowerCase();
-      if (patientName.includes(searchText)) {
-        foundPatients.push(item.cloneNode(true));
-      }
-    });
+    // Фильтруем пациентов по ФИО
+    let foundPatients = lastLoadedPatients.filter(p =>
+      (p.name || '').toLowerCase().includes(searchText)
+    );
 
     // Отображаем результаты
     if (foundPatients.length > 0) {
       noResults.style.display = 'none';
 
-      // Добавляем найденных пациентов в результаты
-      foundPatients.forEach(patient => {
+      foundPatients.forEach(patientObj => {
+        const patient = createPatientItem(patientObj);
         // Подсвечиваем искомый текст
         const patientName = patient.querySelector('.patient-name');
         const name = patientName.textContent;
         const regex = new RegExp(searchText, 'gi');
         patientName.innerHTML = name.replace(regex, match =>
           `<span class="search-highlight">${match}</span>`);
-
-        searchResults.querySelector('.patient-category').appendChild(patient);
+        category.appendChild(patient);
       });
 
       // Обновляем заголовок
@@ -502,7 +396,132 @@ function initPatientSearch() {
     patientList.style.display = 'block';
 
     // Очищаем результаты поиска
-    const existingResults = searchResults.querySelectorAll('.patient-item');
+    const category = searchResults.querySelector('.patient-category');
+    const existingResults = category.querySelectorAll('.patient-item');
     existingResults.forEach(item => item.remove());
   }
+}
+
+/**
+ * Загрузка пациентов из БД и отображение на странице
+ * @param {Date} [dateObj] - дата для загрузки пациентов (по умолчанию сегодня)
+ */
+async function loadPatientsFromDB(dateObj) {
+  const patientList = document.querySelector('.patient-list');
+  if (!patientList) return;
+
+  // Очистить текущий список
+  patientList.innerHTML = '';
+
+  let data = [];
+  try {
+    // Формируем дату в формате YYYY-MM-DD
+    let dateParam = '';
+    if (dateObj instanceof Date) {
+      const yyyy = dateObj.getFullYear();
+      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const dd = String(dateObj.getDate()).padStart(2, '0');
+      dateParam = `${yyyy}-${mm}-${dd}`;
+    }
+    // Передаем дату в API
+    const url = dateParam
+      ? `http://localhost:8000/api/patients/by-date?date=${dateParam}`
+      : 'http://localhost:8000/api/patients/today';
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Ошибка загрузки данных пациентов');
+    data = await response.json();
+  } catch (e) {
+    console.error('Ошибка загрузки пациентов:', e);
+    patientList.innerHTML = '<div style="padding:20px;color:red;">Ошибка загрузки данных пациентов</div>';
+    return;
+  }
+
+  // Сохраняем последний список пациентов для поиска
+  lastLoadedPatients = data;
+
+  // Сортировка по важности и времени
+  // Экстренные сначала, внутри сортировка по времени
+  const parseTime = t => {
+    if (!t) return 0;
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+  };
+
+  const emergency = data
+    .filter(p => p.status === 'экстренный')
+    .sort((a, b) => parseTime(a.time) - parseTime(b.time));
+  const waiting = data
+    .filter(p => p.status !== 'экстренный')
+    .sort((a, b) => parseTime(a.time) - parseTime(b.time));
+
+  // Экстренные
+  if (emergency.length > 0) {
+    const cat = document.createElement('div');
+    cat.className = 'patient-category';
+    cat.innerHTML = `
+      <div class="category-header category-emergency">ЭКСТРЕННЫЕ ${emergency.length}</div>
+    `;
+    emergency.forEach(p => {
+      cat.appendChild(createPatientItem(p));
+    });
+    patientList.appendChild(cat);
+  }
+
+  // Ожидающие
+  if (waiting.length > 0) {
+    const cat = document.createElement('div');
+    cat.className = 'patient-category';
+    cat.innerHTML = `
+      <div class="category-header category-waiting">ОЖИДАЮЩИЕ ${waiting.length}</div>
+    `;
+    waiting.forEach(p => {
+      cat.appendChild(createPatientItem(p));
+    });
+    patientList.appendChild(cat);
+  }
+
+  // После динамического добавления — инициализировать кнопки
+  initStartAppointmentButtons();
+}
+
+/**
+ * Создание DOM-элемента пациента
+ */
+function createPatientItem(patient) {
+  const item = document.createElement('div');
+  item.className = 'patient-item';
+  item.dataset.patientId = patient.id;
+
+  // Формируем статус-бейдж
+  let statusBadge = '';
+  if (patient.status === 'экстренный') {
+    statusBadge = `<span class="status-badge status-emergency">экстренный</span>`;
+  }
+
+  // Формируем строку назначения (reason)
+  let reasonHtml = '';
+  if (patient.reason && patient.reason.trim()) {
+    reasonHtml = `<div class="patient-reason"><span style="color:#888;">Назначение:</span> ${patient.reason}</div>`;
+  }
+
+  item.innerHTML = `
+    <div class="patient-time">${patient.time}</div>
+    <div class="patient-info">
+      <div class="patient-name">${patient.name} ${statusBadge}</div>
+      <div class="patient-details">${patient.gender}, ${patient.age} лет • ${patient.type}</div>
+      ${reasonHtml}
+    </div>
+    <div class="patient-actions">
+      <button class="start-appointment-btn"
+        data-patient-id="${patient.id}"
+        data-patient-name="${patient.name}"
+        data-patient-age="${patient.age}"
+        data-patient-gender="${patient.gender}"
+        data-appointment-type="${patient.type}"
+        data-patient-status="${patient.status}"
+        data-card="${patient.card || ''}"
+      >Начать прием</button>
+    </div>
+  `;
+  return item;
 }

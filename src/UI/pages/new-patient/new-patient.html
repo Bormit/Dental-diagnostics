@@ -11,9 +11,9 @@
 <div class="header">
   <div class="header-logo">DentalAI</div>
   <div class="header-title">НОВЫЙ ПАЦИЕНТ</div>
-  <div class="header-user" onclick="window.location.href='acc.html'" style="cursor: pointer;">
+  <div class="header-user" onclick="window.location.href='../acc/acc.html'" style="cursor: pointer;">
     <div class="user-avatar">ИИ</div>
-    <div>Иванов И.И.</div>
+    <div id="userFullName">Иванов И.И.</div>
   </div>
 </div>
 
@@ -243,5 +243,14 @@
 </div>
 
 <script src="new-patient.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var fullName = localStorage.getItem('user_fullname');
+    if (fullName) {
+      var el = document.getElementById('userFullName');
+      if (el) el.textContent = fullName;
+    }
+  });
+</script>
 </body>
 </html>

@@ -45,18 +45,63 @@ document.addEventListener('DOMContentLoaded', function() {
     successModal.style.display = 'none';
   }
 
+  // Функция для сбора данных формы
+  function collectFormData() {
+    return {
+      lastName: document.getElementById('lastName').value.trim(),
+      firstName: document.getElementById('firstName').value.trim(),
+      middleName: document.getElementById('middleName').value.trim(),
+      birthDate: document.getElementById('birthDate').value,
+      gender: document.getElementById('gender').value,
+      snils: document.getElementById('snils').value.trim(),
+      phoneNumber: document.getElementById('phoneNumber').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      address: document.getElementById('address').value.trim(),
+      policyNumber: document.getElementById('policyNumber').value.trim(),
+      policyCompany: document.getElementById('policyCompany').value.trim(),
+      allergies: document.getElementById('allergies').value.trim(),
+      chronicDiseases: document.getElementById('chronicDiseases').value.trim(),
+      preferredDoctor: document.getElementById('preferredDoctor').value,
+      sourceOfInfo: document.getElementById('sourceOfInfo').value,
+      additionalInfo: document.getElementById('additionalInfo').value.trim(),
+      consentForTreatment: document.getElementById('consentForTreatment').checked,
+      consentForSMS: document.getElementById('consentForSMS').checked
+    };
+  }
+
   // Обработчики событий для сохранения формы
-  function handleSave(e) {
+  async function handleSave(e) {
     e.preventDefault();
 
     if (validateForm()) {
-      // В реальном приложении здесь будет отправка данных на сервер
-      console.log('Форма валидна, отправляем данные');
+      // Собираем данные формы
+      const patientData = collectFormData();
 
-      // Эмуляция задержки сервера
-      setTimeout(() => {
-        showModal();
-      }, 500);
+      // Отправляем данные на сервер
+      try {
+        const response = await fetch('http://localhost:8000/api/patients', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(patientData)
+        });
+
+        if (response.ok) {
+          // Получаем номер карты из ответа (если сервер возвращает)
+          const result = await response.json();
+          const cardNumber = result.cardNumber || '12356';
+          const cardNumberEl = document.querySelector('.card-number');
+          if (cardNumberEl) cardNumberEl.textContent = cardNumber;
+
+          showModal();
+        } else {
+          const err = await response.json();
+          alert('Ошибка при сохранении пациента: ' + (err.error || 'Попробуйте еще раз.'));
+        }
+      } catch (err) {
+        alert('Ошибка соединения с сервером.');
+      }
     } else {
       alert('Пожалуйста, заполните все обязательные поля');
 

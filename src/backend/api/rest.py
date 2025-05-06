@@ -19,6 +19,12 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import io
 import pydicom
+from flask_jwt_extended import (
+    JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt
+)
+from flask_jwt_extended.exceptions import JWTExtendedException
+from flask_jwt_extended import exceptions as jwt_exceptions
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Настройка логирования
 logging.basicConfig(
@@ -31,14 +37,33 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+from src.backend.api.db import db
+from src.backend.api.models.models import User, Patient, Appointment
+from src.backend.api.models.models import Xray
+from sqlalchemy.orm import joinedload
+
 app = Flask(__name__)
 
 # Конфигурация базы данных
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://dentaladmin:12345678@localhost/dental_ai'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://dentaladmin:12345678@localhost:5432/dental_ai'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# JWT конфиг
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'super-secret-key')
+jwt = JWTManager(app)
+
 # Инициализация SQLAlchemy
-db = SQLAlchemy(app)
+db.init_app(app)
+with app.app_context():
+    from src.backend.api.models.models import User
+
+# Добавьте этот блок после инициализации Flask-приложения и db.init_app(app)
+@app.before_request
+def before_request():
+    print(f"==> Пришел запрос: {request.method} {request.path}")
+    # Устанавливаем контекст приложения для каждого запроса
+    if not db.session:
+        db.session = db.create_scoped_session()
 
 # Настройка CORS для конкретных источников
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -77,7 +102,6 @@ PATHOLOGY_COLORS = {
     4: [255, 255, 0]  # Желтый для ретинированных зубов
 }
 
-
 # Проверка разрешенных расширений файлов
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -87,11 +111,11 @@ def allowed_file(filename):
 def load_model():
     if not hasattr(load_model, 'model'):
         try:
-            logger.info(f"Загрузка модели из {MODEL_PATH}")
+            print(f"Загрузка модели из {MODEL_PATH}")
 
             # Проверяем наличие файла модели
             if not os.path.exists(MODEL_PATH):
-                logger.error(f"Файл модели не найден: {MODEL_PATH}")
+                print(f"Файл модели не найден: {MODEL_PATH}")
                 raise FileNotFoundError(f"Файл модели не найден: {MODEL_PATH}")
 
             # Настраиваем GPU, если доступен
@@ -99,20 +123,20 @@ def load_model():
             if gpus:
                 for gpu in gpus:
                     tf.config.experimental.set_memory_growth(gpu, True)
-                logger.info(f"Найден GPU: {gpus}")
+                print(f"Найден GPU: {gpus}")
             else:
-                logger.info("GPU не обнаружен, используется CPU")
+                print("GPU не обнаружен, используется CPU")
 
             # Загружаем модель - используем compile=False, поскольку метрики уже содержатся в модели
             try:
                 load_model.model = tf.keras.models.load_model(MODEL_PATH, compile=False)
-                logger.info("Модель успешно загружена")
+                print("Модель успешно загружена")
             except Exception as e:
-                logger.error(f"Ошибка при загрузке модели: {str(e)}", exc_info=True)
+                print(f"Ошибка при загрузке модели: {str(e)}")
                 raise ValueError(f"Ошибка загрузки модели: {str(e)}")
 
         except Exception as e:
-            logger.error(f"Ошибка при инициализации модели: {str(e)}", exc_info=True)
+            print(f"Ошибка при инициализации модели: {str(e)}")
             raise
     return load_model.model
 
@@ -132,13 +156,13 @@ def preprocess_image(image_path):
                 else:
                     image = image / 255.0
             except Exception as e:
-                logger.error(f"Ошибка при обработке DICOM файла: {str(e)}", exc_info=True)
+                print(f"Ошибка при обработке DICOM файла: {str(e)}")
                 raise ValueError(f"Ошибка при обработке DICOM файла: {str(e)}")
         else:
             # Обработка обычного изображения
             image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
             if image is None:
-                logger.error(f"Не удалось прочитать изображение: {image_path}")
+                print(f"Не удалось прочитать изображение: {image_path}")
                 raise ValueError(f"Не удалось прочитать изображение: {image_path}")
             image = image.astype(np.float32) / 255.0
 
@@ -156,7 +180,7 @@ def preprocess_image(image_path):
 
         return image, original_shape
     except Exception as e:
-        logger.error(f"Ошибка при предобработке изображения: {str(e)}", exc_info=True)
+        print(f"Ошибка при предобработке изображения: {str(e)}")
         raise
 
 
@@ -240,7 +264,7 @@ def postprocess_results(prediction, original_shape):
             'regions': regions
         }
     except Exception as e:
-        logger.error(f"Ошибка при постобработке результатов: {str(e)}", exc_info=True)
+        print(f"Ошибка при постобработке результатов: {str(e)}")
         raise
 
 
@@ -319,16 +343,46 @@ def create_visualization(original_image, results):
 
         return buf
     except Exception as e:
-        logger.error(f"Ошибка при создании визуализации: {str(e)}", exc_info=True)
+        print(f"Ошибка при создании визуализации: {str(e)}")
         raise
 
 
-# Эндпоинт для анализа изображения
+# Добавьте обработчик ошибок JWT
+@jwt.unauthorized_loader
+def custom_unauthorized_response(callback):
+    print(f"[JWT] Unauthorized: {callback}")
+    return jsonify({'error': 'JWT Unauthorized', 'message': callback}), 401
+
+@jwt.invalid_token_loader
+def custom_invalid_token_response(callback):
+    print(f"[JWT] Invalid token: {callback}")
+    return jsonify({'error': 'JWT Invalid token', 'message': callback}), 422
+
+@jwt.expired_token_loader
+def custom_expired_token_response(jwt_header, jwt_payload):
+    print("[JWT] Token expired")
+    return jsonify({'error': 'JWT Token expired'}), 401
+
+@jwt.needs_fresh_token_loader
+def custom_needs_fresh_token_response(callback):
+    print(f"[JWT] Fresh token required: {callback}")
+    return jsonify({'error': 'JWT Fresh token required', 'message': callback}), 401
+
+@jwt.revoked_token_loader
+def custom_revoked_token_response(jwt_header, jwt_payload):
+    print("[JWT] Token revoked")
+    return jsonify({'error': 'JWT Token revoked'}), 401
+
+
+print("=== DentalAI REST API запущен ===")
+
 @app.route('/api/analyze', methods=['POST'])
+@jwt_required(optional=True)
 def analyze_image():
+    print("DEBUG: analyze_image с JWT вызван")
     try:
-        logger.info(f"Получен запрос с параметрами: {request.form}")
-        logger.info(f"Файлы в запросе: {request.files.keys()}")
+        print(f"Получен запрос с параметрами: {request.form}")
+        print(f"Файлы в запросе: {request.files.keys()}")
         start_time = time.time()
 
         # Проверяем наличие файла в запросе
@@ -355,7 +409,7 @@ def analyze_image():
         # Сохраняем файл
         file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
         file.save(file_path)
-        logger.info(f"Файл сохранен: {file_path}")
+        print(f"Файл сохранен: {file_path}")
 
         # Загружаем оригинальное изображение для визуализации
         if file_path.lower().endswith('.dcm'):
@@ -409,6 +463,55 @@ def analyze_image():
         with open(result_file, 'w') as f:
             json.dump(response_data, f, indent=2)
 
+        # --- Исправлено: запись снимка в БД (xrays) ---
+        xray_id = None
+        print(f"request.form (raw): {request.form}")
+        print(f"request.form (dict): {dict(request.form)}")
+        for k in request.form:
+            print(f"request.form[{k}] = {request.form[k]} (type: {type(request.form[k])})")
+        print(f"request.files: {list(request.files.keys())}")
+        patient_id = request.form.get('patient_id') or request.form.get('card_number')
+        claims = get_jwt()
+        user_id = claims.get('user_id')
+        print(f"patient_id={patient_id} (type: {type(patient_id)}), user_id={user_id}, claims={claims}")
+        if not patient_id:
+            print("patient_id отсутствует в запросе")
+            return jsonify({'error': 'patient_id обязателен'}), 422
+        try:
+            patient_id = int(patient_id)
+        except Exception:
+            print(f"patient_id не приводится к int: {patient_id}")
+            return jsonify({'error': 'patient_id должен быть числом'}), 422
+        if not user_id:
+            print("user_id отсутствует в JWT токене")
+            return jsonify({'error': 'Для загрузки снимка требуется авторизация'}), 401
+        uploaded_by = user_id
+
+        try:
+            db_file_path = os.path.relpath(file_path, start=os.path.dirname(os.path.dirname(__file__)))
+            xray_type = "рентген"
+            xray_status = "pending"
+
+            xray = Xray(
+                patient_id=patient_id,
+                uploaded_by=uploaded_by,
+                file_path=db_file_path,
+                type=xray_type,
+                upload_date=datetime.now(),
+                status=xray_status
+            )
+            db.session.add(xray)
+            db.session.commit()
+            xray_id = str(xray.xray_id)
+            response_data['xray_id'] = xray_id
+
+            # После успешного анализа можно обновить статус на 'analyzed'
+            xray.status = 'analyzed'
+            db.session.commit()
+        except Exception as e:
+            print(f"Ошибка при сохранении снимка в БД: {str(e)}")
+            response_data['xray_db_error'] = str(e)
+
         # Создаем визуализацию, если запрошено
         visualization_requested = request.form.get('visualization', 'false').lower() == 'true'
 
@@ -425,16 +528,16 @@ def analyze_image():
                 # Добавляем URL для получения визуализации
                 response_data['visualization_url'] = f"{BASE_URL}/api/visualizations/{unique_id}"
             except Exception as e:
-                logger.error(f"Ошибка при создании визуализации: {str(e)}", exc_info=True)
+                print(f"Ошибка при создании визуализации: {str(e)}")
                 response_data['visualization_error'] = str(e)
 
-        logger.info(f"Анализ завершен, найдено {len(results['regions'])} патологий")
+        print(f"Анализ завершен, найдено {len(results['regions'])} патологий")
         return jsonify(response_data)
 
     except Exception as e:
-        logger.error(f"Ошибка при анализе изображения: {str(e)}")
+        print(f"Ошибка при анализе изображения: {str(e)}")
         import traceback
-        logger.error(traceback.format_exc())
+        print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
 
@@ -449,7 +552,7 @@ def get_visualization(visualization_id):
 
         return send_file(vis_path, mimetype='image/png')
     except Exception as e:
-        logger.error(f"Ошибка при получении визуализации: {str(e)}", exc_info=True)
+        print(f"Ошибка при получении визуализации: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 
@@ -487,7 +590,7 @@ def get_status():
 
         return jsonify(response)
     except Exception as e:
-        logger.error(f"Ошибка при получении статуса: {str(e)}", exc_info=True)
+        print(f"Ошибка при получении статуса: {str(e)}")
         return jsonify({'error': str(e), 'status': 'error'}), 500
 
 
@@ -533,6 +636,57 @@ def root():
     })
 
 
+# --- AUTH ROUTES ---
+
+def handle_login():
+    data = request.get_json()
+    if not data or not data.get('username') or not data.get('password'):
+        return jsonify({'error': 'Необходимо указать имя пользователя и пароль'}), 400
+    user = User.query.filter_by(username=data['username']).first()
+    if user and user.check_password(data['password']):
+        user_info = {
+            'user_id': user.user_id,
+            'username': user.username,
+            'role': user.role
+        }
+        access_token = create_access_token(identity=str(user.user_id), additional_claims=user_info)
+        return jsonify({'access_token': access_token, 'user': {
+            'user_id': user.user_id,
+            'username': user.username,
+            'role': user.role,
+            'full_name': user.full_name
+        }})
+    return jsonify({'error': 'Неверное имя пользователя или пароль'}), 401
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    return handle_login()
+
+@app.route('/api/auth/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    required = ['username', 'password', 'full_name', 'role']
+    if not all(k in data for k in required):
+        return jsonify({'error': 'Необходимо заполнить все поля'}), 400
+    if User.query.filter_by(username=data['username']).first():
+        return jsonify({'error': 'Пользователь уже существует'}), 409
+    user = User(
+        username=data['username'],
+        full_name=data['full_name'],
+        role=data['role'],
+        specialty=data.get('specialty')
+    )
+    user.set_password(data['password'])
+    db.session.add(user)
+    db.session.commit()
+    return jsonify({'message': 'Пользователь зарегистрирован'}), 201
+
+@app.route('/api/auth/me', methods=['GET'])
+@jwt_required()
+def get_me():
+    claims = get_jwt()
+    return jsonify({'user': claims})
+
 # Добавляем новый эндпоинт для сохранения заключения врача
 @app.route('/api/save-conclusion', methods=['POST'])
 def save_conclusion():
@@ -540,11 +694,9 @@ def save_conclusion():
         data = request.json
         if not data:
             return jsonify({'error': 'Данные не предоставлены'}), 400
-
         # Проверяем наличие необходимых полей
         required_fields = ['patient_id', 'image_id', 'conclusion', 'recommendations']
         missing_fields = [field for field in required_fields if field not in data]
-
         if missing_fields:
             return jsonify({'error': f'Отсутствуют необходимые поля: {", ".join(missing_fields)}'}), 400
 
@@ -560,90 +712,274 @@ def save_conclusion():
             'recommendations': data['recommendations'],
             'doctor_id': data.get('doctor_id', 'unknown'),
             'created_at': datetime.now().isoformat(),
-            'pathologies': data.get('pathologies', [])
+            'pathologies': data.get('pathologies', []),
         }
 
         # Сохраняем заключение в JSON файл
         conclusion_file = os.path.join(RESULTS_FOLDER, f"conclusion_{conclusion_id}.json")
         with open(conclusion_file, 'w') as f:
             json.dump(conclusion_data, f, indent=2)
-
-        logger.info(f"Заключение сохранено: {conclusion_file}")
-
+        print(f"Заключение сохранено: {conclusion_file}")
         return jsonify({
             'status': 'success',
             'conclusion_id': conclusion_id,
             'message': 'Заключение успешно сохранено'
         })
-
     except Exception as e:
-        logger.error(f"Ошибка при сохранении заключения: {str(e)}", exc_info=True)
+        print(f"Ошибка при сохранении заключения: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
 
 # Добавляем эндпоинт для получения истории анализов пациента
 @app.route('/api/patient-history/<patient_id>', methods=['GET'])
 def get_patient_history(patient_id):
     try:
-        # Проверяем наличие ID пациента
         if not patient_id:
             return jsonify({'error': 'ID пациента не предоставлен'}), 400
 
-        # В реальном приложении здесь был бы запрос к базе данных
-        # Для примера возвращаем тестовые данные
+        # Получаем снимки из БД (xrays)
+        xrays = (
+            Xray.query
+            .filter_by(patient_id=patient_id)
+            .order_by(Xray.upload_date.desc())
+            .all()
+        )
+
         history = []
-
-        # Ищем все сохраненные заключения для данного пациента
-        for filename in os.listdir(RESULTS_FOLDER):
-            if filename.startswith('conclusion_') and filename.endswith('.json'):
-                file_path = os.path.join(RESULTS_FOLDER, filename)
-                try:
-                    with open(file_path, 'r') as f:
-                        conclusion = json.load(f)
-                        if conclusion.get('patient_id') == patient_id:
-                            # Добавляем только необходимую информацию
-                            history.append({
-                                'id': conclusion.get('id'),
-                                'image_id': conclusion.get('image_id'),
-                                'created_at': conclusion.get('created_at'),
-                                'doctor_id': conclusion.get('doctor_id'),
-                                'pathologies_count': len(conclusion.get('pathologies', []))
-                            })
-                except Exception as e:
-                    logger.error(f"Ошибка при чтении файла {file_path}: {str(e)}")
-                    continue
-
-        # Сортируем по дате создания (от новых к старым)
-        history.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+        for xray in xrays:
+            history.append({
+                'xray_id': xray.xray_id,
+                'upload_date': xray.upload_date.isoformat() if xray.upload_date else '',
+                'file_path': xray.file_path,
+                'status': xray.status,
+                'type': xray.type,
+                'uploaded_by': xray.uploaded_by,
+                # Можно добавить другие поля по необходимости
+            })
 
         return jsonify({
             'patient_id': patient_id,
             'history': history
         })
-
     except Exception as e:
-        logger.error(f"Ошибка при получении истории пациента: {str(e)}", exc_info=True)
+        print(f"Ошибка при получении истории пациента: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+# Добавляем эндпоинт для получения списка пациентов на сегодня
+@app.route('/api/patients/today', methods=['GET'])
+def get_patients_today():
+    """
+    Возвращает список пациентов с назначениями на сегодня из БД.
+    """
+    from datetime import date
+    today = date.today()
+    # Получаем все назначения на сегодня с пациентами
+    appointments = (
+        Appointment.query
+        .options(joinedload(Appointment.patient))
+        .filter(Appointment.appointment_date.cast(db.Date) == today)
+        .all()
+    )
+    result = []
+    for appt in appointments:
+        p = appt.patient
+        # Проверяем наличие даты рождения
+        if p.birth_date:
+            age = today.year - p.birth_date.year - ((today.month, today.day) < (p.birth_date.month, p.birth_date.day))
+        else:
+            age = ""
+        gender = "М" if p.gender == "male" else ("Ж" if p.gender == "female" else "Другое")
+        # Формируем строку времени (часы:минуты)
+        appt_time = appt.appointment_date.strftime('%H:%M') if appt.appointment_date else ""
+        # Преобразуем тип и статус к читаемому виду
+        appt_type = {
+            'consultation': 'консультация',
+            'treatment': 'лечение',
+            'diagnostics': 'диагностика',
+            'follow_up': 'контроль',
+            'emergency': 'экстренный'
+        }.get(appt.appointment_type, appt.appointment_type)
+        status = 'экстренный' if appt.appointment_type == 'emergency' else 'ожидает'
+        result.append({
+            "id": str(p.patient_id),
+            "name": p.full_name,
+            "gender": gender,
+            "age": age,
+            "type": appt_type,
+            "time": appt_time,
+            "status": status,
+            "card": "",  # если есть поле карты, подставьте его
+            "reason": appt.reason
+        })
+    return jsonify(result)
+
+@app.route('/api/patients/by-date', methods=['GET'])
+def get_patients_by_date():
+    """
+    Возвращает список пациентов с назначениями на выбранную дату (параметр date=YYYY-MM-DD).
+    """
+    from datetime import datetime, date
+    date_str = request.args.get('date')
+    if not date_str:
+        return jsonify({'error': 'Не указана дата'}), 400
+    try:
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except Exception:
+        return jsonify({'error': 'Некорректный формат даты, используйте YYYY-MM-DD'}), 400
+    appointments = (
+        Appointment.query
+        .options(joinedload(Appointment.patient))
+        .filter(Appointment.appointment_date.cast(db.Date) == selected_date)
+        .all()
+    )
+    result = []
+    for appt in appointments:
+        p = appt.patient
+        if p.birth_date:
+            age = selected_date.year - p.birth_date.year - ((selected_date.month, selected_date.day) < (p.birth_date.month, p.birth_date.day))
+        else:
+            age = ""
+        gender = "М" if p.gender == "male" else ("Ж" if p.gender == "female" else "Другое")
+        appt_time = appt.appointment_date.strftime('%H:%M') if appt.appointment_date else ""
+        appt_type = {
+            'consultation': 'консультация',
+            'treatment': 'лечение',
+            'diagnostics': 'диагностика',
+            'follow_up': 'контроль',
+            'emergency': 'экстренный'
+        }.get(appt.appointment_type, appt.appointment_type)
+        status = 'экстренный' if appt.appointment_type == 'emergency' else 'ожидает'
+        result.append({
+            "id": str(p.patient_id),
+            "name": p.full_name,
+            "gender": gender,
+            "age": age,
+            "type": appt_type,
+            "time": appt_time,
+            "status": status,
+            "card": "",  # если есть поле карты, подставьте его
+            "reason": appt.reason
+        })
+    return jsonify(result)
+
+@app.route('/api/patients', methods=['GET', 'POST'])
+def patients_handler():
+    if request.method == 'GET':
+        # --- Получение всех пациентов ---
+        try:
+            patients = Patient.query.all()
+            result = []
+            for p in patients:
+                result.append({
+                    "patient_id": str(p.patient_id),
+                    "full_name": p.full_name,
+                    "birth_date": p.birth_date.strftime('%Y-%m-%d') if p.birth_date else "",
+                    "phone": p.phone or "",
+                    "email": p.email or "",
+                    "gender": p.gender or "",
+                    # Можно добавить другие поля по необходимости
+                })
+            return jsonify(result)
+        except Exception as e:
+            print(f"Ошибка при получении списка пациентов: {str(e)}")
+            return jsonify({'error': str(e)}), 500
+    elif request.method == 'POST':
+        # --- Создание нового пациента ---
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({'error': 'Данные не предоставлены'}), 400
+            required_fields = ['lastName', 'firstName', 'birthDate', 'gender', 'phoneNumber']
+            missing = [f for f in required_fields if not data.get(f)]
+            if missing:
+                return jsonify({'error': f'Не заполнены обязательные поля: {", ".join(missing)}'}), 400
+            # Формируем full_name
+            full_name = data.get('lastName', '').strip()
+            if data.get('firstName'):
+                full_name += ' ' + data.get('firstName').strip()
+            if data.get('middleName'):
+                full_name += ' ' + data.get('middleName').strip()
+            patient = Patient(
+                full_name=full_name,
+                birth_date=datetime.strptime(data.get('birthDate'), '%Y-%m-%d') if data.get('birthDate') else None,
+                gender=data.get('gender'),
+                phone=data.get('phoneNumber'),
+                email=data.get('email')
+            )
+            db.session.add(patient)
+            db.session.commit()
+            return jsonify({'cardNumber': str(patient.patient_id)}), 201
+        except Exception as e:
+            print(f"Ошибка при создании пациента: {str(e)}")
+            return jsonify({'error': str(e)}), 500
+
+@app.route('/api/patient-search', methods=['POST'])
+def patient_search():
+    """
+    Поиск пациента по ФИО, дате рождения и полу (без номера карты).
+    """
+    data = request.get_json() or request.form
+    name = data.get('name', '').strip()
+    birth_date = data.get('birthDate', '').strip()
+    gender = data.get('gender', '').strip()
+    if not name or not birth_date or not gender:
+        return jsonify({'error': 'Необходимо указать ФИО, дату рождения и пол'}), 400
+
+    # Преобразуем строку даты в объект date
+    try:
+        from datetime import datetime
+        birth_date_obj = datetime.strptime(birth_date, '%Y-%m-%d').date()
+    except Exception:
+        return jsonify({'error': 'Некорректный формат даты рождения'}), 400
+    # Поиск по полному совпадению ФИО, дате рождения и полу
+    patient = Patient.query.filter(
+        Patient.full_name == name,
+        Patient.birth_date == birth_date_obj,
+        Patient.gender == gender
+    ).first()
+    if not patient:
+        return jsonify({'patient': None}), 200
+
+    return jsonify({
+        'patient': {
+            'id': str(patient.patient_id),
+            'name': patient.full_name,
+            'birthDate': patient.birth_date.strftime('%Y-%m-%d') if patient.birth_date else '',
+            'gender': patient.gender,
+            'cardNumber': str(patient.patient_id)  # если нужно
+        }
+    })
+
+@app.route('/api/uploads/<path:filename>')
+def serve_uploaded_file(filename):
+    uploads_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+    return send_file(os.path.join(uploads_dir, filename))
+
+@app.route('/api/ping')
+def ping():
+    return 'pong'
 
 # Запуск сервера
 if __name__ == '__main__':
     try:
         # Проверка наличия файла модели перед запуском
         if not os.path.exists(MODEL_PATH):
-            logger.warning(f"Файл модели не найден: {MODEL_PATH}")
-            logger.warning("Модель будет загружена при первом запросе")
+            print(f"Файл модели не найден: {MODEL_PATH}")
+            print("Модель будет загружена при первом запросе")
         else:
             # Предварительная загрузка модели перед запуском сервера
             try:
                 load_model()
-                logger.info("Модель успешно загружена")
+                print("Модель успешно загружена")
             except Exception as e:
-                logger.error(f"Ошибка при загрузке модели: {str(e)}", exc_info=True)
-                logger.warning("Сервер запущен без предварительной загрузки модели")
-
-        logger.info(f"Сервер запускается на {SERVER_HOST}:{SERVER_PORT}")
+                print(f"Ошибка при загрузке модели: {str(e)}")
+                print("Сервер запущен без предварительной загрузки модели")
+        print(f"Сервер запускается на {SERVER_HOST}:{SERVER_PORT}")
         # Запуск сервера
         app.run(host=SERVER_HOST, port=SERVER_PORT, debug=False)
     except Exception as e:
-        logger.error(f"Критическая ошибка при запуске сервера: {str(e)}", exc_info=True)
+        print(f"Критическая ошибка при запуске сервера: {str(e)}")
+
+
+
+
+

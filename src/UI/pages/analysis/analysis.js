@@ -113,6 +113,13 @@ function analyzeImage() {
         return;
     }
 
+    // Проверяем, выбран ли пациент (иначе сервер вернет 422)
+    if (!window.selectedPatient || !window.selectedPatient.id) {
+        hideLoader();
+        showNotification('Ошибка', 'Пожалуйста, выберите пациента перед анализом снимка', 'error');
+        return;
+    }
+
     // Показываем индикатор загрузки
     showLoader('Анализ снимка...');
 
@@ -125,19 +132,36 @@ function analyzeImage() {
     const patientName = document.getElementById('patientName').value.trim();
     const cardNumber = document.getElementById('cardNumber').value.trim();
 
-    if(patientName) {
-        formData.append('patient_name', patientName);
-    }
-    if(cardNumber) {
+    // Используем selectedPatient, если он есть
+    if (window.selectedPatient && window.selectedPatient.id) {
+        formData.append('patient_id', window.selectedPatient.id);
+    } else if (cardNumber) {
         formData.append('card_number', cardNumber);
     }
+    if (patientName) {
+        formData.append('patient_name', patientName);
+    }
+
+    // Получаем токен из localStorage (или другого места, где вы его храните)
+    const token = localStorage.getItem('access_token');
 
     // Отправляем запрос на сервер
     fetch(SERVER_BASE_URL + '/api/analyze', {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: token ? { 'Authorization': 'Bearer ' + token } : undefined
     })
         .then(response => {
+            if (response.status === 401) {
+                hideLoader();
+                showNotification('Ошибка', 'Необходима авторизация. Пожалуйста, войдите в систему.', 'error');
+                throw new Error('Необходима авторизация');
+            }
+            if (response.status === 422) {
+                hideLoader();
+                showNotification('Ошибка', 'Пожалуйста, выберите пациента и заполните все обязательные поля.', 'error');
+                throw new Error('Некорректные данные запроса');
+            }
             if(!response.ok) {
                 throw new Error('Ошибка сервера: ' + response.status);
             }
@@ -163,6 +187,11 @@ function analyzeImage() {
 
             // Отображаем результаты
             showResults(data);
+
+            // --- ДОБАВЛЕНО: обновить историю снимков пациента ---
+            if (window.selectedPatient && window.selectedPatient.id && typeof window.loadPatientHistory === 'function') {
+                window.loadPatientHistory(window.selectedPatient.id);
+            }
         })
         .catch(error => {
             hideLoader();
@@ -454,14 +483,20 @@ function saveConclusion() {
         return;
     }
 
-    const patientId = document.getElementById('cardNumber').value.trim();
+    // Используем selectedPatient, если он есть
+    let patientId = '';
+    if (window.selectedPatient && window.selectedPatient.id) {
+        patientId = window.selectedPatient.id;
+    } else {
+        patientId = document.getElementById('cardNumber').value.trim() || 'unknown';
+    }
 
     // Показываем индикатор загрузки
     showLoader('Сохранение заключения...');
 
     // Подготавливаем данные для отправки
     const conclusionData = {
-        patient_id: patientId || 'unknown',
+        patient_id: patientId,
         image_id: currentImageId,
         conclusion: conclusion,
         recommendations: recommendations,

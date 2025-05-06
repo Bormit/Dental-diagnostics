@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DentalAI - Личный кабинет</title>
-  <link rel="stylesheet" href="acc.css">
+  <link rel="stylesheet" href="./acc.css">
 </head>
 <body>
 <div class="header">
   <div class="header-logo">DentalAI</div>
   <div class="header-title">ЛИЧНЫЙ КАБИНЕТ</div>
-  <div class="header-user" onclick="window.location.href='acc.html'" style="cursor: pointer;">
+  <div class="header-user" onclick="window.location.href='./acc.html'" style="cursor: pointer;">
     <div class="user-avatar">ИИ</div>
-    <div>Иванов И.И.</div>
+    <div id="userFullName">Иванов И.И.</div>
   </div>
 </div>
 
@@ -23,11 +23,11 @@
   </div>
 
   <div class="main-content">
-    <!-- Переключатель ролей (только для демонстрации) -->
+    <!-- Переключатель ролей (только для демонстрации, реальная роль берется из БД) -->
     <div class="role-switcher">
-      <div class="role-switcher-title">Демонстрация разных ролей:</div>
+      <div class="role-switcher-title">Демонстрация разных ролей (реальная роль определяется автоматически):</div>
       <div class="role-tabs">
-        <div class="role-tab active" data-role="doctor">Врач</div>
+        <div class="role-tab" data-role="doctor">Врач</div>
         <div class="role-tab" data-role="head-doctor">Заведующий отделением</div>
         <div class="role-tab" data-role="admin">Администратор</div>
         <div class="role-tab" data-role="registrar">Регистратор</div>
@@ -626,6 +626,15 @@
   </div>
 </div>
 
-<script src="acc.js"></script>
+<script src="./acc.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var fullName = localStorage.getItem('user_fullname');
+    if (fullName) {
+      var el = document.getElementById('userFullName');
+      if (el) el.textContent = fullName;
+    }
+  });
+</script>
 </body>
 </html>

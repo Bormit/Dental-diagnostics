@@ -1,14 +1,23 @@
-from src.backend.api.rest  import db
+from src.backend.api.db import db
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import JSON, ENUM
 from sqlalchemy import LargeBinary
+
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Создание ENUM типов
 user_role = ENUM('admin', 'doctor', name='user_role_enum', create_type=True)
 image_status = ENUM('pending', 'analyzed', name='image_status_enum', create_type=True)
 analysis_status = ENUM('pending', 'completed', 'failed', name='analysis_status_enum', create_type=True)
 gender_type = ENUM('male', 'female', 'other', name='gender_enum', create_type=True)
-
+appointment_type_enum = ENUM(
+    'consultation', 'treatment', 'diagnostics', 'follow_up', 'emergency',
+    name='appointment_type_enum', create_type=True
+)
+appointment_status_enum = ENUM(
+    'scheduled', 'completed', 'cancelled',
+    name='appointment_status_enum', create_type=True
+)
 
 # Модели
 class User(db.Model):
@@ -25,11 +34,17 @@ class User(db.Model):
     xrays = db.relationship('Xray', backref='uploaded_by_user')
     diagnoses = db.relationship('Diagnosis', backref='doctor')
 
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
 
 class Patient(db.Model):
     __tablename__ = 'patients'
 
-    patient_id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     full_name = db.Column(db.String(100), nullable=False)
     birth_date = db.Column(db.Date, nullable=False)
     gender = db.Column(gender_type, nullable=False)
@@ -39,6 +54,7 @@ class Patient(db.Model):
     # Отношения
     xrays = db.relationship('Xray', backref='patient')
     diagnoses = db.relationship('Diagnosis', backref='patient')
+    appointments = db.relationship('Appointment', back_populates='patient')
 
 
 class NeuralModel(db.Model):
@@ -100,7 +116,7 @@ class Xray(db.Model):
     file_path = db.Column(db.String(255), nullable=False)
     type = db.Column(db.String(50), nullable=False)
     upload_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    status = db.Column(image_status, nullable=False, default='pending')
+    status = db.Column(db.String(8), nullable=False, default='pending')
 
     # Отношения
     analyses = db.relationship('Analysis', backref='xray')
@@ -143,3 +159,22 @@ class Diagnosis(db.Model):
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.patient_id', ondelete='CASCADE'), nullable=False)
     diagnosis_text = db.Column(db.Text, nullable=False)
     treatment_plan = db.Column(db.Text)
+
+
+class Appointment(db.Model):
+    __tablename__ = 'appointments'
+
+    appointment_id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.patient_id', ondelete='CASCADE'), nullable=False)
+    doctor_id = db.Column(db.Integer, nullable=False)
+    appointment_date = db.Column(db.DateTime, nullable=False)
+    duration_minutes = db.Column(db.Integer)
+    appointment_type = db.Column(appointment_type_enum, nullable=False)
+    status = db.Column(appointment_status_enum, nullable=False)
+    reason = db.Column(db.Text)
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime)
+    updated_at = db.Column(db.DateTime)
+
+    # Отношения
+    patient = db.relationship('Patient', back_populates='appointments')
