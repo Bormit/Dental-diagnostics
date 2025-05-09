@@ -263,6 +263,84 @@
     text-decoration: underline;
 }
 
+/* Всплывающие уведомления */
+.notification {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    min-width: 320px;
+    max-width: 400px;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    z-index: 3000;
+    transform: translateY(-120px);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.35s cubic-bezier(.4,0,.2,1);
+    border-left: 6px solid var(--primary-color);
+}
+
+.notification.show {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.notification.success {
+    border-left-color: var(--success-color);
+}
+.notification.error {
+    border-left-color: var(--danger-color);
+}
+.notification.warning {
+    border-left-color: var(--warning-color);
+}
+.notification.info {
+    border-left-color: var(--primary-color);
+}
+
+.notification-content {
+    padding: 18px 24px 18px 18px;
+    position: relative;
+}
+
+.notification-title {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 4px;
+    color: var(--primary-color);
+}
+
+.notification.error .notification-title {
+    color: var(--danger-color);
+}
+.notification.success .notification-title {
+    color: var(--success-color);
+}
+.notification.warning .notification-title {
+    color: var(--warning-color);
+}
+
+.notification-message {
+    font-size: 14px;
+    color: var(--text-color);
+    margin-bottom: 2px;
+}
+
+.notification-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 22px;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.notification-close:hover {
+    color: var(--danger-color);
+}
+
 /* Адаптивность для мобильных устройств */
 @media (max-width: 768px) {
     .search-row {

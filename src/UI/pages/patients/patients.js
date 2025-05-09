@@ -38,14 +38,110 @@ async function importPatientsFromApi() {
     }
 }
 
-function renderPatientsTable(patients) {
+// --- Pagination Logic ---
+const PATIENTS_PER_PAGE = 10;
+let currentPage = 1;
+let lastRenderedPatients = [];
+
+function getTotalPages(patients) {
+    return Math.max(1, Math.ceil(patients.length / PATIENTS_PER_PAGE));
+}
+
+function renderPagination(patients, page) {
+    const pagination = document.querySelector('.pagination');
+    if (!pagination) return;
+    const totalPages = getTotalPages(patients);
+
+    // Clear old buttons
+    pagination.innerHTML = '';
+
+    // Prev button
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'pagination-button';
+    prevBtn.innerHTML = '&lt;';
+    prevBtn.disabled = page === 1;
+    prevBtn.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderPatientsTable(lastRenderedPatients, currentPage);
+        }
+    };
+    pagination.appendChild(prevBtn);
+
+    // Page buttons (show first, up to 3, ..., last)
+    if (totalPages <= 5) {
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'pagination-button' + (i === page ? ' active' : '');
+            btn.textContent = i;
+            btn.onclick = () => {
+                currentPage = i;
+                renderPatientsTable(lastRenderedPatients, currentPage);
+            };
+            pagination.appendChild(btn);
+        }
+    } else {
+        // Always show first
+        let pagesToShow = [];
+        if (page <= 3) {
+            pagesToShow = [1,2,3,4,'...',totalPages];
+        } else if (page >= totalPages - 2) {
+            pagesToShow = [1,'...',totalPages-3,totalPages-2,totalPages-1,totalPages];
+        } else {
+            pagesToShow = [1,'...',page-1,page,page+1,'...',totalPages];
+        }
+        pagesToShow.forEach(p => {
+            if (p === '...') {
+                const btn = document.createElement('button');
+                btn.className = 'pagination-button';
+                btn.textContent = '...';
+                btn.disabled = true;
+                pagination.appendChild(btn);
+            } else {
+                const btn = document.createElement('button');
+                btn.className = 'pagination-button' + (p === page ? ' active' : '');
+                btn.textContent = p;
+                btn.onclick = () => {
+                    currentPage = p;
+                    renderPatientsTable(lastRenderedPatients, currentPage);
+                };
+                pagination.appendChild(btn);
+            }
+        });
+    }
+
+    // Next button
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'pagination-button';
+    nextBtn.innerHTML = '&gt;';
+    nextBtn.disabled = page === totalPages;
+    nextBtn.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderPatientsTable(lastRenderedPatients, currentPage);
+        }
+    };
+    pagination.appendChild(nextBtn);
+}
+
+// Модифицируем renderPatientsTable для поддержки пагинации
+function renderPatientsTable(patients, page = 1) {
+    lastRenderedPatients = patients;
     const tbody = document.querySelector('.patients-table tbody');
     tbody.innerHTML = '';
     if (!patients.length) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Нет данных</td></tr>';
+        renderPagination(patients, 1);
         return;
     }
-    patients.forEach(patient => {
+    const totalPages = getTotalPages(patients);
+    if (page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
+    const startIdx = (page - 1) * PATIENTS_PER_PAGE;
+    const endIdx = startIdx + PATIENTS_PER_PAGE;
+    const pagePatients = patients.slice(startIdx, endIdx);
+
+    pagePatients.forEach(patient => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td class="patient-name">${patient.name}</td>
@@ -62,8 +158,8 @@ function renderPatientsTable(patients) {
         `;
         tbody.appendChild(tr);
     });
-    // Re-attach action handlers
     attachActionHandlers();
+    renderPagination(patients, page);
 }
 
 function getStatusText(status) {
@@ -93,7 +189,8 @@ if (addPatientForm) {
         const patients = getPatients();
         patients.unshift(newPatient);
         savePatients(patients);
-        renderPatientsTable(patients);
+        renderPatientsTable(patients, 1);
+        currentPage = 1;
         addPatientModal.style.display = 'none';
         addPatientForm.reset();
     });
@@ -108,8 +205,8 @@ if (searchInput && searchButton) {
         const query = searchInput.value.trim().toLowerCase();
         const patients = getPatients();
         if (!query) {
-            // Если строка поиска пустая — показываем всех пациентов
-            renderPatientsTable(patients);
+            renderPatientsTable(patients, 1);
+            currentPage = 1;
             return;
         }
         const filtered = patients.filter(p =>
@@ -117,13 +214,14 @@ if (searchInput && searchButton) {
             (p.card && p.card.toLowerCase().includes(query)) ||
             (p.phone && p.phone.toLowerCase().includes(query))
         );
-        renderPatientsTable(filtered);
+        renderPatientsTable(filtered, 1);
+        currentPage = 1;
     });
     searchInput.addEventListener('keyup', function(e) {
         if (e.key === 'Enter') searchButton.click();
-        // Если строка поиска очищена — показываем всех пациентов
         if (!searchInput.value.trim()) {
-            renderPatientsTable(getPatients());
+            renderPatientsTable(getPatients(), 1);
+            currentPage = 1;
         }
     });
 }

@@ -392,6 +392,41 @@ body {
   margin-top: 20px;
 }
 
+/* Увеличиваем размер изображения визуализации в результатах анализа */
+#analysis-results-section .panel-content .results-container .panel-content,
+#analysis-results-section .panel-content .results-container,
+#analysis-results-section .panel-content {
+  /* убираем ограничения на min-width */
+}
+
+#analysis-results-section img,
+#analysis-results-section .result-image {
+  max-width: 100%;
+  max-height: 900px; /* было 600px, теперь 900px */
+  width: auto;
+  height: auto;
+  display: block;
+  margin: 0 auto 20px auto;
+  border-radius: 4px;
+  border: 1px solid #eee;
+  background: #fff;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+}
+
+/* Для модального окна истории тоже увеличим */
+.modal-content img {
+  max-width: 98vw;
+  max-height: 90vh; /* было 85vh, теперь 90vh */
+  width: auto;
+  height: auto;
+  display: block;
+  margin: 0 auto 20px auto;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  background: #fff;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+}
+
 /* Result tabs styles */
 .results-tabs {
   display: flex;

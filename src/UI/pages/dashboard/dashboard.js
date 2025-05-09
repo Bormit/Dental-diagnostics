@@ -436,23 +436,35 @@ async function loadPatientsFromDB(dateObj) {
     return;
   }
 
+  // --- Фильтрация по врачу ---
+  const currentDoctorId = localStorage.getItem('user_id');
+  if (currentDoctorId) {
+    data = data.filter(
+      p => String(p.doctor_id) === String(currentDoctorId)
+    );
+  }
+  // --- конец фильтрации ---
+
   // Сохраняем последний список пациентов для поиска
   lastLoadedPatients = data;
 
   // Сортировка по важности и времени
-  // Экстренные сначала, внутри сортировка по времени
   const parseTime = t => {
     if (!t) return 0;
     const [h, m] = t.split(':').map(Number);
     return h * 60 + m;
   };
 
+  // Используем поля напрямую из объекта p
+  const getStatus = p => p.status;
+  const getTime = p => p.time;
+
   const emergency = data
-    .filter(p => p.status === 'экстренный')
-    .sort((a, b) => parseTime(a.time) - parseTime(b.time));
+    .filter(p => getStatus(p) === 'экстренный')
+    .sort((a, b) => parseTime(getTime(a)) - parseTime(getTime(b)));
   const waiting = data
-    .filter(p => p.status !== 'экстренный')
-    .sort((a, b) => parseTime(a.time) - parseTime(b.time));
+    .filter(p => getStatus(p) !== 'экстренный')
+    .sort((a, b) => parseTime(getTime(a)) - parseTime(getTime(b)));
 
   // Экстренные
   if (emergency.length > 0) {
@@ -492,23 +504,29 @@ function createPatientItem(patient) {
   item.className = 'patient-item';
   item.dataset.patientId = patient.id;
 
+  // Используем данные напрямую из patient
+  const status = patient.status;
+  const time = patient.time;
+  const type = patient.type;
+  const reason = patient.reason;
+
   // Формируем статус-бейдж
   let statusBadge = '';
-  if (patient.status === 'экстренный') {
+  if (status === 'экстренный') {
     statusBadge = `<span class="status-badge status-emergency">экстренный</span>`;
   }
 
   // Формируем строку назначения (reason)
   let reasonHtml = '';
-  if (patient.reason && patient.reason.trim()) {
-    reasonHtml = `<div class="patient-reason"><span style="color:#888;">Назначение:</span> ${patient.reason}</div>`;
+  if (reason && reason.trim()) {
+    reasonHtml = `<div class="patient-reason"><span style="color:#888;">Назначение:</span> ${reason}</div>`;
   }
 
   item.innerHTML = `
-    <div class="patient-time">${patient.time}</div>
+    <div class="patient-time">${time || ''}</div>
     <div class="patient-info">
       <div class="patient-name">${patient.name} ${statusBadge}</div>
-      <div class="patient-details">${patient.gender}, ${patient.age} лет • ${patient.type}</div>
+      <div class="patient-details">${patient.gender}, ${patient.age} лет • ${type || ''}</div>
       ${reasonHtml}
     </div>
     <div class="patient-actions">
@@ -517,8 +535,8 @@ function createPatientItem(patient) {
         data-patient-name="${patient.name}"
         data-patient-age="${patient.age}"
         data-patient-gender="${patient.gender}"
-        data-appointment-type="${patient.type}"
-        data-patient-status="${patient.status}"
+        data-appointment-type="${type || ''}"
+        data-patient-status="${status || ''}"
         data-card="${patient.card || ''}"
       >Начать прием</button>
     </div>

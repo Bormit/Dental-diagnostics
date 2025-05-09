@@ -113,13 +113,6 @@ function analyzeImage() {
         return;
     }
 
-    // Проверяем, выбран ли пациент (иначе сервер вернет 422)
-    if (!window.selectedPatient || !window.selectedPatient.id) {
-        hideLoader();
-        showNotification('Ошибка', 'Пожалуйста, выберите пациента перед анализом снимка', 'error');
-        return;
-    }
-
     // Показываем индикатор загрузки
     showLoader('Анализ снимка...');
 
@@ -220,57 +213,43 @@ function showResults(data) {
     let resultsSection = document.getElementById('analysis-results-section');
 
     if (!resultsSection) {
-        // Если секции нет, создаем новую
         resultsSection = document.createElement('div');
         resultsSection.id = 'analysis-results-section';
         resultsSection.className = 'panel';
-
-        // Добавляем секцию в анализ-контейнер
         const analysisLeft = document.querySelector('.analysis-left');
         if (analysisLeft) {
             analysisLeft.appendChild(resultsSection);
         } else {
-            // Если нет контейнера, добавляем после кнопки анализа
             const analyzeBtn = document.getElementById('analyzeBtn');
             if (analyzeBtn && analyzeBtn.parentNode) {
                 analyzeBtn.parentNode.parentNode.appendChild(resultsSection);
             } else {
-                // Запасной вариант - добавляем в main-content
                 const mainContent = document.querySelector('.main-content');
                 if (mainContent) {
                     mainContent.appendChild(resultsSection);
                 } else {
-                    // Крайний случай - добавляем в body
                     document.body.appendChild(resultsSection);
                 }
             }
         }
     }
 
-    // Очищаем существующую секцию
     resultsSection.innerHTML = '';
 
-    // Создаем заголовок секции
+    // Заголовок секции
     const header = document.createElement('div');
     header.className = 'panel-header';
     header.innerHTML = '<span>Результаты анализа</span>' +
         '<button class="search-btn" id="reanalyze-btn">Повторный анализ</button>';
 
-    // Создаем содержимое секции
+    // Основной контент секции (вертикальная компоновка)
     const content = document.createElement('div');
     content.className = 'panel-content';
 
-    // Создаем контейнер для результатов
-    const resultsContainer = document.createElement('div');
-    resultsContainer.style.display = 'flex';
-    resultsContainer.style.flexWrap = 'wrap';
-    resultsContainer.style.gap = '20px';
-
-    // Добавляем изображение визуализации
+    // Блок с изображением (всегда сверху)
     const imageContainer = document.createElement('div');
-    imageContainer.style.flex = '1';
-    imageContainer.style.minWidth = '300px';
     imageContainer.style.textAlign = 'center';
+    imageContainer.style.marginBottom = '25px';
 
     if (data.visualization_url) {
         const image = document.createElement('img');
@@ -279,13 +258,11 @@ function showResults(data) {
         image.style.maxWidth = '100%';
         image.style.borderRadius = '4px';
         image.style.border = '1px solid #eee';
-
-        // Обработка ошибки загрузки изображения
+        image.style.margin = '0 auto 20px auto';
         image.onerror = function() {
             this.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22300%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22300%22%20height%3D%22200%22%20fill%3D%22%23f8f9fa%22%2F%3E%3Ctext%20x%3D%22150%22%20y%3D%22100%22%20font-size%3D%2214%22%20text-anchor%3D%22middle%22%20fill%3D%22%23999%22%3E%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0%20%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D0%B8%20%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F%3C%2Ftext%3E%3C%2Fsvg%3E';
             this.alt = 'Ошибка загрузки изображения';
         };
-
         imageContainer.appendChild(image);
     } else {
         const noImage = document.createElement('div');
@@ -298,12 +275,7 @@ function showResults(data) {
         imageContainer.appendChild(noImage);
     }
 
-    // Создаем блок для информации о результатах
-    const resultsInfo = document.createElement('div');
-    resultsInfo.style.flex = '1';
-    resultsInfo.style.minWidth = '300px';
-
-    // Блок с вкладками
+    // Блок с вкладками (патологии/заключение)
     const tabs = document.createElement('div');
     tabs.className = 'results-tabs';
     tabs.innerHTML = '<div class="tab active" data-tab="pathologies">Патологии</div>' +
@@ -362,20 +334,13 @@ function showResults(data) {
         </div>
     `;
 
-    // Добавляем вкладки в контейнер
     tabContents.appendChild(pathologiesTab);
     tabContents.appendChild(conclusionTab);
 
-    // Собираем блок с информацией
-    resultsInfo.appendChild(tabs);
-    resultsInfo.appendChild(tabContents);
-
-    // Добавляем все в контейнер результатов
-    resultsContainer.appendChild(imageContainer);
-    resultsContainer.appendChild(resultsInfo);
-
-    // Добавляем контейнер в содержимое секции
-    content.appendChild(resultsContainer);
+    // Собираем основной вертикальный layout
+    content.appendChild(imageContainer);
+    content.appendChild(tabs);
+    content.appendChild(tabContents);
 
     // Собираем секцию целиком
     resultsSection.appendChild(header);
@@ -383,8 +348,6 @@ function showResults(data) {
 
     // Отображаем секцию
     resultsSection.style.display = 'block';
-
-    // Добавляем обработчики событий
 
     // Обработчик повторного анализа
     document.getElementById('reanalyze-btn').addEventListener('click', function() {
@@ -397,17 +360,11 @@ function showResults(data) {
     const tabButtons = document.querySelectorAll('.results-tabs .tab');
     tabButtons.forEach(tab => {
         tab.addEventListener('click', function() {
-            // Убираем активный класс со всех вкладок
             tabButtons.forEach(t => t.classList.remove('active'));
-            // Добавляем активный класс текущей вкладке
             this.classList.add('active');
-
-            // Скрываем все контенты вкладок
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.style.display = 'none';
             });
-
-            // Показываем нужный контент
             const tabName = this.getAttribute('data-tab');
             document.getElementById(tabName + '-tab').style.display = 'block';
         });
@@ -478,41 +435,76 @@ function saveConclusion() {
     const conclusion = document.getElementById('doctor-conclusion').value.trim();
     const recommendations = document.getElementById('doctor-recommendations').value.trim();
 
-    if(!conclusion) {
+    if (!conclusion) {
         showNotification('Ошибка', 'Пожалуйста, введите заключение', 'error');
         return;
     }
 
-    // Используем selectedPatient, если он есть
+    // Получаем данные пациента
     let patientId = '';
     if (window.selectedPatient && window.selectedPatient.id) {
         patientId = window.selectedPatient.id;
     } else {
-        patientId = document.getElementById('cardNumber').value.trim() || 'unknown';
+        showNotification('Ошибка', 'Пациент не выбран. Сохранение невозможно.', 'error');
+        return;
     }
 
-    // Показываем индикатор загрузки
+    // Получаем ID врача (например, из localStorage)
+    const doctorId = localStorage.getItem('user_id');
+    if (!doctorId) {
+        showNotification('Ошибка', 'Не удалось определить врача. Пожалуйста, войдите в систему.', 'error');
+        return;
+    }
+
+    // --- ОТЛАДКА: выводим структуру analysisResults и results ---
+    console.log('[DEBUG] analysisResults:', analysisResults);
+    if (analysisResults && analysisResults.results) {
+        console.log('[DEBUG] analysisResults.results:', analysisResults.results);
+    }
+
+    let resultId = null;
+    // Здесь попытка найти result_id (оставьте как есть)
+    if (analysisResults && analysisResults.result_id) {
+        resultId = analysisResults.result_id;
+    }
+    else if (analysisResults && analysisResults.results && Array.isArray(analysisResults.results.interpretation_results) && analysisResults.results.interpretation_results.length > 0) {
+        resultId = analysisResults.results.interpretation_results[0].result_id;
+    }
+    else if (analysisResults && analysisResults.results && Array.isArray(analysisResults.results.regions) && analysisResults.results.regions.length > 0 && analysisResults.results.regions[0].result_id) {
+        resultId = analysisResults.results.regions[0].result_id;
+    }
+
+    // --- ОТЛАДКА: выводим найденный resultId ---
+    console.log('[DEBUG] resultId для diagnoses:', resultId);
+
+    if (!resultId) {
+        showNotification(
+            'Ошибка',
+            'Не удалось определить result_id для сохранения заключения. Проверьте структуру ответа анализа (см. консоль разработчика).<br>Возможно, сервер не возвращает result_id.<br>Попросите backend-разработчика добавить result_id в ответ /api/analyze.',
+            'error'
+        );
+        return;
+    }
+
     showLoader('Сохранение заключения...');
 
-    // Подготавливаем данные для отправки
-    const conclusionData = {
+    const diagnosisData = {
         patient_id: patientId,
-        image_id: currentImageId,
-        conclusion: conclusion,
-        recommendations: recommendations,
-        pathologies: analysisResults.results.regions
+        doctor_id: doctorId,
+        diagnosis_text: conclusion,
+        treatment_plan: recommendations,
+        result_id: resultId
     };
 
-    // Отправляем запрос на сервер
-    fetch(SERVER_BASE_URL + '/api/save-conclusion', {
+    fetch(SERVER_BASE_URL + '/api/diagnoses', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(conclusionData)
+        body: JSON.stringify(diagnosisData)
     })
         .then(response => {
-            if(!response.ok) {
+            if (!response.ok) {
                 throw new Error('Ошибка сервера: ' + response.status);
             }
             return response.json();
@@ -520,6 +512,10 @@ function saveConclusion() {
         .then(data => {
             hideLoader();
             showNotification('Успех', 'Заключение успешно сохранено', 'success');
+            // --- ДОБАВЛЕНО: сразу обновить историю снимков ---
+            if (window.selectedPatient && window.selectedPatient.id && typeof window.loadPatientHistory === 'function') {
+                window.loadPatientHistory(window.selectedPatient.id);
+            }
         })
         .catch(error => {
             hideLoader();

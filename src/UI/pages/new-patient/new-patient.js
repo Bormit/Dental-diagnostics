@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (goToListBtn) {
     goToListBtn.addEventListener('click', function() {
       hideModal();
-      window.location.href = 'patients.html';
+      window.location.href = '../patients/patients.html';
     });
   }
 

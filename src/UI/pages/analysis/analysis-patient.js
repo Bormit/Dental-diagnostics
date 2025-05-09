@@ -22,6 +22,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (noPatientWarning) noPatientWarning.style.display = 'block';
             if (patientHistoryPanel) patientHistoryPanel.style.display = 'none';
             if (noHistoryPanel) noHistoryPanel.style.display = 'block';
+
+            // Очищаем результаты анализа
+            const resultsSection = document.getElementById('analysis-results-section');
+            if (resultsSection) {
+                resultsSection.style.display = 'none';
+                resultsSection.innerHTML = '';
+            }
         });
     }
 
@@ -108,6 +115,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Показываем панель истории
                         if (patientHistoryPanel) patientHistoryPanel.style.display = 'block';
                         if (noHistoryPanel) noHistoryPanel.style.display = 'none';
+
+                        // Очищаем результаты анализа при выборе другого пациента
+                        const resultsSection = document.getElementById('analysis-results-section');
+                        if (resultsSection) {
+                            resultsSection.style.display = 'none';
+                            resultsSection.innerHTML = '';
+                        }
                     } else {
                         selectedPatient = null;
                         showNotification('Ошибка', 'Пациент не найден', 'error');
@@ -115,6 +129,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (noPatientWarning) noPatientWarning.style.display = 'block';
                         if (patientHistoryPanel) patientHistoryPanel.style.display = 'none';
                         if (noHistoryPanel) noHistoryPanel.style.display = 'block';
+
+                        // Очищаем результаты анализа если пациент не найден
+                        const resultsSection = document.getElementById('analysis-results-section');
+                        if (resultsSection) {
+                            resultsSection.style.display = 'none';
+                            resultsSection.innerHTML = '';
+                        }
                     }
                 })
                 .catch(error => {
@@ -125,6 +146,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (noPatientWarning) noPatientWarning.style.display = 'block';
                     if (patientHistoryPanel) patientHistoryPanel.style.display = 'none';
                     if (noHistoryPanel) noHistoryPanel.style.display = 'block';
+
+                    // Очищаем результаты анализа при ошибке поиска
+                    const resultsSection = document.getElementById('analysis-results-section');
+                    if (resultsSection) {
+                        resultsSection.style.display = 'none';
+                        resultsSection.innerHTML = '';
+                    }
                 });
             } else {
                 showNotification('Ошибка', 'Пожалуйста, заполните все обязательные поля', 'error');
@@ -185,34 +213,65 @@ function renderPatientHistory(history) {
     const patientHistoryPanel = document.getElementById('patientHistoryPanel');
     if (!patientHistoryPanel) return;
 
+    // Группируем по analysis_id (только уникальные анализы)
+    const uniqueAnalyses = {};
+    history.forEach(item => {
+        if (item.analysis_id && !uniqueAnalyses[item.analysis_id]) {
+            uniqueAnalyses[item.analysis_id] = item;
+        }
+    });
+
+    const analysesArr = Object.values(uniqueAnalyses);
+
+    // Если нет истории, показываем сообщение
+    if (analysesArr.length === 0) {
+        patientHistoryPanel.innerHTML = '<div class="empty-history">История снимков отсутствует</div>';
+        return;
+    }
+
     let html = '';
-    history.slice(0, 3).forEach(item => {
-        const date = new Date(item.upload_date);
-        const formattedDate = date.toLocaleDateString('ru-RU') + ' ' +
-            date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    analysesArr.slice(0, 3).forEach(item => {
+        let formattedDate = '-';
+        if (item.upload_date && item.upload_date !== 'null' && item.upload_date !== '') {
+            const date = new Date(item.upload_date);
+            if (!isNaN(date.getTime())) {
+                formattedDate = date.toLocaleDateString('ru-RU') + ' ' +
+                    date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            }
+        }
+        // Добавим отладку для analysis_id
         html += `
         <div class="history-item">
             <div class="history-date">${formattedDate}</div>
             <div class="history-actions">
-                <a href="#" class="history-view" data-id="${item.xray_id}" data-file="${item.file_path}">Просмотреть</a>
+                <a href="#" class="history-view" data-id="${item.analysis_id}" 
+                   data-diagnosis="${encodeURIComponent(item.diagnosis_text || '')}"
+                   data-plan="${encodeURIComponent(item.treatment_plan || '')}"
+                   onclick="console.log('[DEBUG] Клик по Просмотреть, analysis_id:', '${item.analysis_id}')">Просмотреть</a>
             </div>
         </div>
         `;
     });
 
-    if (history.length > 3) {
-        html += `<div class="show-all-history"><button class="search-btn" id="showAllHistoryBtn">Показать все (${history.length})</button></div>`;
+    if (analysesArr.length > 3) {
+        html += `<div class="show-all-history"><button class="search-btn" id="showAllHistoryBtn">Показать все (${analysesArr.length})</button></div>`;
     }
 
     patientHistoryPanel.innerHTML = html;
 
-    // Обработчик для просмотра снимка (отображение в основной зоне)
+    // Обработчик для просмотра снимка (открытие модального окна)
     patientHistoryPanel.querySelectorAll('.history-view').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const imageId = this.getAttribute('data-id');
-            const filePath = this.getAttribute('data-file');
-            showHistoryImageInMainArea(imageId, filePath);
+            const analysisId = this.getAttribute('data-id');
+            const diagnosisText = decodeURIComponent(this.getAttribute('data-diagnosis') || '');
+            const treatmentPlan = decodeURIComponent(this.getAttribute('data-plan') || '');
+            console.log('[DEBUG] Клик по Просмотреть, analysisId:', analysisId);
+            if (analysisId && analysisId !== 'undefined' && analysisId !== 'null') {
+                showHistoryImageModal(analysisId, diagnosisText, treatmentPlan);
+            } else {
+                showNotification('Ошибка', 'Некорректный идентификатор снимка', 'error');
+            }
         });
     });
 
@@ -220,113 +279,124 @@ function renderPatientHistory(history) {
     const showAllBtn = document.getElementById('showAllHistoryBtn');
     if (showAllBtn) {
         showAllBtn.addEventListener('click', function() {
-            showAllHistory(history);
+            showAllHistory(analysesArr);
         });
     }
 }
 
-// Отображение снимка из истории в основной зоне загрузки
-function showHistoryImageInMainArea(imageId, filePath) {
-    // Собираем абсолютный URL к файлу
-    let imageUrl = filePath;
-    if (imageUrl && !/^https?:\/\//.test(imageUrl)) {
-        imageUrl = SERVER_BASE_URL + '/' + imageUrl.replace(/^[\\/]+/, '').replace(/\\/g, '/');
-    }
+// Модальное окно для просмотра снимка и патологий из истории
+function showHistoryImageModal(analysisId, diagnosisText, treatmentPlan) {
+    console.log('[DEBUG] showHistoryImageModal called with analysisId:', analysisId);
+    fetch(`${SERVER_BASE_URL}/api/analysis-result/${analysisId}`)
+        .then(response => {
+            console.log('[DEBUG] /api/analysis-result response:', response);
+            return response.json();
+        })
+        .then(data => {
+            console.log('[DEBUG] /api/analysis-result data:', data);
 
-    // Скрываем превью и uploadArea
-    const uploadArea = document.getElementById('uploadArea');
-    const imagePreview = document.getElementById('imagePreview');
-    if (uploadArea) uploadArea.style.display = 'none';
-    if (imagePreview) imagePreview.style.display = 'none';
+            // Визуализация
+            let imageHtml = '';
+            if (data.visualization_url) {
+                console.log('[DEBUG] visualization_url:', data.visualization_url);
+                imageHtml = `<img src="${data.visualization_url}" alt="Снимок пациента" style="display:block;max-width:95vw;max-height:60vh;border-radius:8px;box-shadow:0 2px 16px rgba(0,0,0,0.5);background:#fff;margin-bottom:20px;" onerror="console.log('[DEBUG] Ошибка загрузки изображения:', this.src); this.style.display='none';">`;
+            } else {
+                console.log('[DEBUG] Нет visualization_url');
+                imageHtml = `<div class="no-image" style="margin-bottom:20px;">Визуализация недоступна</div>`;
+            }
 
-    // Показываем снимок в resultsSection (или создаём его)
-    let resultsSection = document.getElementById('analysis-results-section');
-    if (!resultsSection) {
-        resultsSection = document.createElement('div');
-        resultsSection.id = 'analysis-results-section';
-        resultsSection.className = 'panel';
-        const analysisLeft = document.querySelector('.analysis-left');
-        if (analysisLeft) {
-            analysisLeft.appendChild(resultsSection);
-        } else {
-            document.body.appendChild(resultsSection);
-        }
-    }
-    resultsSection.style.display = 'block';
-    resultsSection.innerHTML = '';
+            // Патологии
+            let pathologiesHtml = '';
+            if (data.regions && data.regions.length > 0) {
+                console.log('[DEBUG] regions:', data.regions);
+                pathologiesHtml = '<div class="pathologies-list">' + generateDentalChart(data.regions) + '</div>';
+            } else {
+                console.log('[DEBUG] regions пустой или отсутствует');
+                pathologiesHtml = '<div class="no-pathologies">Патологии не обнаружены</div>';
+            }
 
-    // Заголовок
-    const header = document.createElement('div');
-    header.className = 'panel-header';
-    header.innerHTML = `<span>Просмотр снимка (ID: ${imageId})</span>
-        <button class="search-btn" id="close-history-image-btn">Закрыть</button>`;
+            // Заключение и план лечения
+            let conclusionHtml = '';
+            if (diagnosisText || treatmentPlan) {
+                conclusionHtml = `
+                  <div style="margin-top:20px;">
+                    <h3 style="margin-bottom:8px;">Заключение врача</h3>
+                    <div style="background:#f9f9f9;padding:10px 12px;border-radius:5px;margin-bottom:10px;white-space:pre-line;">${diagnosisText ? diagnosisText : '<span style="color:#aaa;">Нет заключения</span>'}</div>
+                    <h3 style="margin-bottom:8px;">Рекомендации</h3>
+                    <div style="background:#f9f9f9;padding:10px 12px;border-radius:5px;white-space:pre-line;">${treatmentPlan ? treatmentPlan : '<span style="color:#aaa;">Нет рекомендаций</span>'}</div>
+                  </div>
+                `;
+            }
 
-    // Контент
-    const content = document.createElement('div');
-    content.className = 'panel-content';
+            // Создаем модальное окно
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100vw';
+            modal.style.height = '100vh';
+            modal.style.background = 'rgba(0,0,0,0.8)';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.zIndex = 9999;
 
-    // Проверка наличия изображения
-    let imgHtml = '';
-    if (imageUrl) {
-        imgHtml = `<img src="${imageUrl}" alt="Снимок пациента" style="max-width:100%;max-height:400px;border:1px solid #eee;border-radius:4px;" onerror="this.style.display='none';document.getElementById('no-history-image').style.display='block';">`;
-    }
-    content.innerHTML = `
-        <div style="text-align:center;">
-            ${imgHtml}
-            <div id="no-history-image" class="no-image" style="display:none;">Не удалось загрузить снимок</div>
-        </div>
-    `;
+            modal.innerHTML = `
+              <div class="modal-content" style="background:#fff;max-width:700px;max-height:90vh;overflow-y:auto;position:relative;padding:32px 24px 24px 24px;border-radius:8px;">
+                <span class="close" style="position:absolute;top:10px;right:20px;cursor:pointer;font-size:32px;color:#333;z-index:2;">&times;</span>
+                <h2 style="margin-bottom:20px;">Просмотр снимка (ID: ${analysisId})</h2>
+                ${imageHtml}
+                <h3 style="margin-bottom:10px;">Обнаруженные патологии</h3>
+                ${pathologiesHtml}
+                ${conclusionHtml}
+              </div>
+            `;
+            document.body.appendChild(modal);
 
-    resultsSection.appendChild(header);
-    resultsSection.appendChild(content);
-
-    // Кнопка "Закрыть" возвращает к загрузке снимка
-    document.getElementById('close-history-image-btn').onclick = function() {
-        resultsSection.style.display = 'none';
-        if (uploadArea) uploadArea.style.display = 'block';
-        if (imagePreview) imagePreview.style.display = 'none';
-    };
-}
-
-// Функция отображения снимка из истории в модальном окне
-function showHistoryImageModal(imageId, filePath) {
-    // Собираем абсолютный URL к файлу (если нужно, скорректируйте путь)
-    let imageUrl = filePath;
-    if (imageUrl && !/^https?:\/\//.test(imageUrl)) {
-        // Если путь относительный, добавляем базовый URL
-        imageUrl = SERVER_BASE_URL + '/' + imageUrl.replace(/^[\\/]+/, '').replace(/\\/g, '/');
-    }
-
-    // Создаем модальное окно
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.zIndex = 3000;
-    modal.innerHTML = `
-      <div class="modal-content" style="max-width:600px">
-        <span class="close" style="cursor:pointer;float:right;font-size:24px;">&times;</span>
-        <h2>Просмотр снимка (ID: ${imageId})</h2>
-        <div style="text-align:center;margin:20px 0;">
-          <img src="${imageUrl}" alt="Снимок пациента" style="max-width:100%;max-height:400px;border:1px solid #eee;border-radius:4px;">
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-
-    modal.querySelector('.close').onclick = () => modal.remove();
-    modal.onclick = e => { if (e.target === modal) modal.remove(); };
+            // Закрытие по крестику
+            modal.querySelector('.close').onclick = () => modal.remove();
+            // Закрытие по клику вне модального окна
+            modal.onclick = e => {
+                if (e.target === modal) modal.remove();
+            };
+        })
+        .catch((err) => {
+            console.error('[DEBUG] Ошибка при получении анализа:', err);
+            showNotification('Ошибка', 'Не удалось загрузить результаты анализа', 'error');
+        });
 }
 
 // Функция отображения всей истории снимков (модальное окно)
 function showAllHistory(history) {
-    let html = '<div class="history-list">';
+    // Группируем по analysis_id (только уникальные анализы)
+    const uniqueAnalyses = {};
     history.forEach(item => {
-        const date = new Date(item.created_at || item.upload_date);
-        const formattedDate = date.toLocaleDateString('ru-RU');
+        if (item.analysis_id && !uniqueAnalyses[item.analysis_id]) {
+            uniqueAnalyses[item.analysis_id] = item;
+        }
+    });
+    const analysesArr = Object.values(uniqueAnalyses);
+
+    let html = '<div class="history-list">';
+    analysesArr.forEach(item => {
+        let formattedDate = '-';
+        if (item.upload_date && item.upload_date !== 'null' && item.upload_date !== '') {
+            const date = new Date(item.upload_date);
+            if (!isNaN(date.getTime())) {
+                formattedDate = date.toLocaleDateString('ru-RU') + ' ' +
+                    date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            }
+        }
         html += `
         <div class="history-item">
             <div class="history-date">${formattedDate}</div>
             <div class="history-actions">
-                <a href="#" class="history-view" data-id="${item.image_id || item.xray_id}">Просмотреть</a>
+                <a href="#" class="history-view" 
+                   data-id="${item.analysis_id}" 
+                   data-diagnosis="${encodeURIComponent(item.diagnosis_text || '')}"
+                   data-plan="${encodeURIComponent(item.treatment_plan || '')}"
+                >Просмотреть</a>
             </div>
         </div>
         `;
@@ -336,17 +406,47 @@ function showAllHistory(history) {
     // Простое модальное окно
     const modal = document.createElement('div');
     modal.className = 'modal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100vw';
+    modal.style.height = '100vh';
+    modal.style.background = 'rgba(0,0,0,0.8)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = 9999;
+
     modal.innerHTML = `
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Вся история снимков</h2>
+      <div class="modal-content" style="background:#fff;max-width:600px;max-height:90vh;overflow-y:auto;position:relative;padding:32px 24px 24px 24px;border-radius:8px;">
+        <span class="close" style="position:absolute;top:10px;right:20px;cursor:pointer;font-size:32px;color:#333;z-index:2;">&times;</span>
+        <h2 style="margin-bottom:20px;">Вся история снимков</h2>
         ${html}
       </div>
     `;
     document.body.appendChild(modal);
 
+    // Закрытие по крестику
     modal.querySelector('.close').onclick = () => modal.remove();
-    modal.onclick = e => { if (e.target === modal) modal.remove(); };
+    // Закрытие по клику вне модального окна
+    modal.onclick = e => {
+        if (e.target === modal) modal.remove();
+    };
+
+    // Обработчик для просмотра снимка (открытие модального окна)
+    modal.querySelectorAll('.history-view').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const analysisId = this.getAttribute('data-id');
+            const diagnosisText = decodeURIComponent(this.getAttribute('data-diagnosis') || '');
+            const treatmentPlan = decodeURIComponent(this.getAttribute('data-plan') || '');
+            if (analysisId && analysisId !== 'undefined' && analysisId !== 'null') {
+                showHistoryImageModal(analysisId, diagnosisText, treatmentPlan);
+            } else {
+                showNotification('Ошибка', 'Некорректный идентификатор снимка', 'error');
+            }
+        });
+    });
 }
 
 // Функция просмотра снимка из истории

@@ -1,4 +1,4 @@
-from src.backend.api.db import db
+from ..db import db
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import JSON, ENUM
 from sqlalchemy import LargeBinary
@@ -32,7 +32,8 @@ class User(db.Model):
 
     # Отношения
     xrays = db.relationship('Xray', backref='uploaded_by_user')
-    diagnoses = db.relationship('Diagnosis', backref='doctor')
+    diagnoses = db.relationship('Diagnosis', backref='doctor', foreign_keys='Diagnosis.doctor_id')
+    appointments = db.relationship('Appointment', backref='doctor', foreign_keys='Appointment.doctor_id')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -53,14 +54,14 @@ class Patient(db.Model):
 
     # Отношения
     xrays = db.relationship('Xray', backref='patient')
-    diagnoses = db.relationship('Diagnosis', backref='patient')
+    diagnoses = db.relationship('Diagnosis', backref='patient', foreign_keys='Diagnosis.patient_id')
     appointments = db.relationship('Appointment', back_populates='patient')
 
 
 class NeuralModel(db.Model):
     __tablename__ = 'neural_models'
 
-    model_id = db.Column(db.Integer, primary_key=True)
+    model_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), nullable=False)
     version = db.Column(db.String(20), nullable=False)
     architecture = db.Column(db.String(50))
@@ -86,7 +87,7 @@ class ModelParameter(db.Model):
 class Pathology(db.Model):
     __tablename__ = 'pathologies'
 
-    pathology_id = db.Column(db.Integer, primary_key=True)
+    pathology_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), nullable=False)
     code = db.Column(db.String(20), nullable=False, unique=True)
     description = db.Column(db.Text)
@@ -125,7 +126,7 @@ class Xray(db.Model):
 class Analysis(db.Model):
     __tablename__ = 'analyses'
 
-    analysis_id = db.Column(db.Integer, primary_key=True)
+    analysis_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     xray_id = db.Column(db.Integer, db.ForeignKey('xrays.xray_id', ondelete='CASCADE'), nullable=False)
     model_id = db.Column(db.Integer, db.ForeignKey('neural_models.model_id'), nullable=False)
     analysis_date = db.Column(db.DateTime, default=datetime.utcnow)
@@ -139,7 +140,7 @@ class Analysis(db.Model):
 class InterpretationResult(db.Model):
     __tablename__ = 'interpretation_results'
 
-    result_id = db.Column(db.Integer, primary_key=True)
+    result_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     analysis_id = db.Column(db.Integer, db.ForeignKey('analyses.analysis_id', ondelete='CASCADE'), nullable=False)
     pathology_id = db.Column(db.Integer, db.ForeignKey('pathologies.pathology_id'), nullable=False)
     probability = db.Column(db.Float, nullable=False)
@@ -147,17 +148,16 @@ class InterpretationResult(db.Model):
     description = db.Column(db.Text)
 
     # Отношения
-    diagnoses = db.relationship('Diagnosis', backref='result')
+    diagnoses = db.relationship('Diagnosis', backref='result', foreign_keys='Diagnosis.result_id')
 
 
 class Diagnosis(db.Model):
     __tablename__ = 'diagnoses'
-
-    diagnosis_id = db.Column(db.Integer, primary_key=True)
-    result_id = db.Column(db.Integer, db.ForeignKey('interpretation_results.result_id'), nullable=False)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.patient_id', ondelete='CASCADE'), nullable=False)
-    diagnosis_text = db.Column(db.Text, nullable=False)
+    diagnosis_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    result_id = db.Column(db.Integer, db.ForeignKey('interpretation_results.result_id'), nullable=False)  # теперь NOT NULL
+    doctor_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.patient_id'))
+    diagnosis_text = db.Column(db.Text)
     treatment_plan = db.Column(db.Text)
 
 
@@ -166,7 +166,7 @@ class Appointment(db.Model):
 
     appointment_id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.patient_id', ondelete='CASCADE'), nullable=False)
-    doctor_id = db.Column(db.Integer, nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     appointment_date = db.Column(db.DateTime, nullable=False)
     duration_minutes = db.Column(db.Integer)
     appointment_type = db.Column(appointment_type_enum, nullable=False)
