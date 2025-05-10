@@ -398,14 +398,18 @@ function generateDentalChart(regions) {
                 class_id: classId,
                 class_name: region.class_name,
                 count: 0,
-                highest_probability: 0
+                highest_probability: 0,
+                total_probability: 0, // Добавляем для расчета средней вероятности
+                regions: [] // Сохраняем все регионы для каждого типа патологии
             };
         }
         groupedPathologies[classId].count++;
+        groupedPathologies[classId].total_probability += region.probability; // Суммируем вероятности
         groupedPathologies[classId].highest_probability = Math.max(
             groupedPathologies[classId].highest_probability,
             region.probability
         );
+        groupedPathologies[classId].regions.push(region); // Сохраняем регион
     });
 
     // Отображаем сгруппированные патологии
@@ -414,12 +418,16 @@ function generateDentalChart(regions) {
         const isRare = pathology.class_id === 3 || pathology.class_id === 4;
         const rareIcon = isRare ? '★ ' : '';
         const rareClass = isRare ? 'rare-pathology' : '';
+
+        // Вычисляем среднюю вероятность для данного типа патологии
+        const avgProbability = pathology.total_probability / pathology.count;
+
         html += `
         <div class="pathology-item ${rareClass}">
             <div class="pathology-name">${rareIcon}${pathology.class_name} (${pathology.count} шт.)</div>
             <div class="pathology-probability">
                 <div class="probability-bar">
-                    <div class="probability-fill" style="width: ${pathology.highest_probability * 100}%"></div>
+                    <div class="probability-fill" style="width: ${avgProbability * 100}%"></div>
                 </div>
                 <div class="probability-value">до ${(pathology.highest_probability * 100).toFixed(1)}%</div>
             </div>

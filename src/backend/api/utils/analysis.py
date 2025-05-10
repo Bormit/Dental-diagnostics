@@ -5,7 +5,8 @@ import os
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import io
-from ..config import PATHOLOGY_COLORS, PATHOLOGY_CLASSES, IMAGE_SIZE
+# Исправлено: абсолютный импорт для запуска как скрипта
+from src.backend.api.config import PATHOLOGY_COLORS, PATHOLOGY_CLASSES, IMAGE_SIZE
 
 
 def load_model(model_path):
@@ -85,49 +86,63 @@ def preprocess_image(image_path):
         raise
 
 
-def process_results(prediction, original_shape):
-    """Обработка результатов предсказания"""
+def process_results(prediction, original_shape, threshold=0.3):
+    """Обработка результатов предсказания с порогом вероятности"""
+    print("Min/max по каналам:", np.min(prediction), np.max(prediction))
+    print("Сумма по каналам (должна быть 1):", np.sum(prediction[0], axis=-1))
+    for class_id in range(prediction.shape[-1]):
+        print(f"Class {class_id} max prob: {np.max(prediction[0, :, :, class_id]):.4f}, mean: {np.mean(prediction[0, :, :, class_id]):.4f}")
     try:
-        # Получаем категории для каждого пикселя
-        if len(prediction.shape) == 4:  # [batch, height, width, classes]
-            prediction_mask = np.argmax(prediction[0], axis=-1)
+        # Изменяем размер вероятностей обратно к оригинальному размеру
+        if original_shape and tuple(map(int, prediction.shape[1:3])) != tuple(map(int, original_shape)):
+            h, w = map(int, original_shape)
+            if h <= 0 or w <= 0:
+                print(f"Warning: original_shape некорректен: {original_shape}")
+                return {'regions': [], 'color_mask': []}
+            probs_resized = np.zeros((1, h, w, prediction.shape[-1]))
+            for class_id in range(prediction.shape[-1]):
+                class_map = prediction[0, :, :, class_id]
+                print(f"DEBUG: class_id={class_id}, type={type(class_map)}, dtype={getattr(class_map, 'dtype', None)}, shape={getattr(class_map, 'shape', None)}")
+                if class_map is None or class_map.size == 0 or class_map.ndim != 2:
+                    print(f"Warning: class_map for class {class_id} is empty or not 2D, skipping resize.")
+                    continue
+                if not isinstance(class_map, np.ndarray):
+                    class_map = np.array(class_map)
+                # Приводим к float32, если не float32/uint8
+                if class_map.dtype not in [np.float32, np.uint8]:
+                    class_map = class_map.astype(np.float32)
+                try:
+                    probs_resized[0, :, :, class_id] = cv2.resize(
+                        class_map,
+                        (w, h),
+                        interpolation=cv2.INTER_LINEAR
+                    )
+                except Exception as e:
+                    print(f"Resize error for class {class_id}: {e}")
+                    continue
         else:
-            prediction_mask = np.argmax(prediction, axis=-1)
+            probs_resized = prediction
 
-        # Изменяем размер маски обратно к оригинальному размеру
-        if original_shape and original_shape != prediction_mask.shape:
-            prediction_mask = cv2.resize(
-                prediction_mask.astype(np.uint8),
-                (original_shape[1], original_shape[0]),
-                interpolation=cv2.INTER_NEAREST
-            )
-
-        # Создаем цветную маску для визуализации
-        height, width = prediction_mask.shape
+        height, width = probs_resized.shape[1:3]
         color_mask = np.zeros((height, width, 3), dtype=np.uint8)
-
-        # Анализируем каждый класс патологии
         regions = []
+
         for class_id in range(1, 5):  # Пропускаем фон (класс 0)
-            # Находим области для текущего класса
-            class_mask = (prediction_mask == class_id).astype(np.uint8)
+            # --- Новый способ: берем все пиксели, где вероятность класса > threshold ---
+            class_prob = probs_resized[0, :, :, class_id]
+            class_mask = (class_prob > threshold).astype(np.uint8)
 
-            # Если есть области данного класса
             if np.any(class_mask):
-                # Применяем цвет к маске
                 class_color = PATHOLOGY_COLORS.get(class_id, [255, 255, 255])
-                color_mask[prediction_mask == class_id] = class_color
+                color_mask[class_mask == 1] = class_color
 
-                # Находим контуры для этой патологии
-                contours, _ = cv2.findContours(class_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
+                contours_info = cv2.findContours(class_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                contours = contours_info[0] if len(contours_info) == 2 else contours_info[1]
                 for contour in contours:
-                    # Фильтруем маленькие контуры (шум)
                     if cv2.contourArea(contour) > 30:
-                        # Получаем ограничивающий прямоугольник
                         x, y, w, h = cv2.boundingRect(contour)
-
-                        # Вычисляем центроид
+                        if w == 0 or h == 0:
+                            continue
                         M = cv2.moments(contour)
                         if M["m00"] > 0:
                             cx = int(M["m10"] / M["m00"])
@@ -135,21 +150,14 @@ def process_results(prediction, original_shape):
                         else:
                             cx, cy = x + w // 2, y + h // 2
 
-                        # Получаем среднюю вероятность этого класса в этой области
-                        if len(prediction.shape) == 4:  # [batch, height, width, classes]
-                            roi = prediction[0,
-                                  max(0, y):min(y + h, height),
-                                  max(0, x):min(x + w, width),
-                                  class_id]
-                            probability = float(np.mean(roi)) if roi.size > 0 else 0.5
-                        else:
-                            probability = 0.7  # Значение по умолчанию, если форма неожиданная
+                        # Средняя вероятность по маске
+                        vals = class_prob[class_mask == 1]
+                        probability = float(np.mean(vals)) if vals.size > 0 else 0.0
 
-                        # Добавляем информацию в список регионов
                         regions.append({
                             'class_id': int(class_id),
                             'class_name': PATHOLOGY_CLASSES[class_id],
-                            'probability': float(probability),
+                            'probability': probability,
                             'x': int(x),
                             'y': int(y),
                             'width': int(w),
@@ -160,13 +168,12 @@ def process_results(prediction, original_shape):
                         })
 
         return {
-            'mask': prediction_mask.tolist(),
-            'color_mask': color_mask.tolist(),
-            'regions': regions
+            'regions': regions,
+            'color_mask': color_mask.tolist()
         }
     except Exception as e:
         print(f"Ошибка при обработке результатов: {str(e)}")
-        raise
+        return {'regions': [], 'color_mask': []}
 
 
 def create_visualization(original_image, results):
@@ -195,35 +202,34 @@ def create_visualization(original_image, results):
         # Накладываем маску на изображение
         ax.imshow(rgba_mask)
 
-        # Добавляем аннотации для каждого обнаруженного региона
+        # Подсчитываем количество патологий каждого класса
+        pathology_counts = {}
         for region in results['regions']:
-            x, y = region['center_x'], region['center_y']
-            class_name = region['class_name']
-            probability = region['probability']
+            class_id = region['class_id']
+            if class_id not in pathology_counts:
+                pathology_counts[class_id] = 0
+            pathology_counts[class_id] += 1
 
-            # Специальное выделение для редких патологий (классы 3 и 4)
-            if region['class_id'] in [3, 4]:
-                ax.text(x, y, f"{class_name} ★\n{probability:.1%}",
-                        color='yellow', fontsize=10, fontweight='bold',
-                        bbox=dict(facecolor='black', alpha=0.7, pad=2),
-                        ha='center', va='center')
-            else:
-                ax.text(x, y, f"{class_name}\n{probability:.1%}",
-                        color='white', fontsize=9,
-                        bbox=dict(facecolor='black', alpha=0.5, pad=1),
-                        ha='center', va='center')
-
-        # Добавляем легенду для цветов
+        # Добавляем улучшенную легенду с количеством патологий
         legend_elements = []
         for class_id, class_name in PATHOLOGY_CLASSES.items():
             if class_id > 0:  # Пропускаем фон
                 color = np.array(PATHOLOGY_COLORS.get(class_id, [255, 255, 255])) / 255.0
                 emphasis = " ★" if class_id in [3, 4] else ""
-                legend_elements.append(plt.Line2D([0], [0], marker='o', color='w',
-                                                  markerfacecolor=color, markersize=10,
-                                                  label=f"{class_name}{emphasis}"))
+                count = pathology_counts.get(class_id, 0)
+                if count > 0:
+                    label = f"{class_name}{emphasis} ({count} шт.)"
+                    legend_elements.append(plt.Line2D([0], [0], marker='o', color='w',
+                                                     markerfacecolor=color, markersize=10,
+                                                     label=label))
 
-        ax.legend(handles=legend_elements, loc='lower right', fontsize=8, framealpha=0.7)
+        # Добавляем легенду с боковой полосой прокрутки если много элементов
+        if len(legend_elements) > 6:
+            ax.legend(handles=legend_elements, loc='lower right', fontsize=8, framealpha=0.7,
+                     title="Обнаруженные патологии", bbox_to_anchor=(1.02, 0), ncol=1)
+        else:
+            ax.legend(handles=legend_elements, loc='lower right', fontsize=8, framealpha=0.7,
+                     title="Обнаруженные патологии")
 
         # Добавляем заголовок
         num_pathologies = len(results['regions'])

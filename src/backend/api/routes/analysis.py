@@ -74,12 +74,26 @@ def analyze_image():
         # Выполняем предсказание
         prediction = model.predict(processed_image)
 
+        print("Min/max по каналам:", np.min(prediction), np.max(prediction))
+        print("Сумма по каналам (должна быть 1):", np.sum(prediction[0], axis=-1))
+
+        for class_id in range(prediction.shape[-1]):
+            confident_pixels = np.sum(prediction[0, :, :, class_id] > 0.5)
+            print(f"Class {class_id}: confident pixels (>0.5) = {confident_pixels}")
+
         # Освобождаем память GPU, если использовалась
         tf.keras.backend.clear_session()
         gc.collect()
 
         # Постобработка результатов
         results = process_results(prediction, original_shape)
+
+        # --- ОТЛАДКА: выводим вероятности всех патологий в regions ---
+        if results and 'regions' in results:
+            print("=== DEBUG: Вероятности патологий по регионам ===")
+            for idx, region in enumerate(results['regions']):
+                print(f"Region {idx+1}: class_id={region['class_id']}, class_name={region['class_name']}, probability={region['probability']:.4f}")
+            print("=== END DEBUG ===")
 
         # Добавляем метаданные
         metadata = {
