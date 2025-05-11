@@ -438,7 +438,64 @@ function generateDentalChart(regions) {
     return html;
 }
 
-// Функция сохранения заключения
+// Функция обновления статуса назначения
+function updateAppointmentStatus(patientId, status) {
+    // Получаем информацию из sessionStorage (устанавливается в dashboard.js при запуске приема)
+    const appointmentType = sessionStorage.getItem('appointmentType') || 'diagnostics';
+    const appointmentStartTime = sessionStorage.getItem('appointmentStartTime');
+
+    // Поиск appointment_id по patient_id и типу приема
+    // Этот запрос найдет последнее назначение для данного пациента с данным типом
+    return fetch(SERVER_BASE_URL + '/api/appointments/find', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            patient_id: patientId,
+            appointment_type: appointmentType,
+            start_time: appointmentStartTime
+        })
+    })
+        .then(response => {
+            if (!response.ok) {
+                console.warn('Не удалось найти назначение пациента');
+                return null;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data || !data.appointment_id) {
+                console.warn('Не найдено активное назначение для пациента');
+                return { success: false, message: 'Назначение не найдено' };
+            }
+
+            // Теперь обновляем статус назначения
+            return fetch(SERVER_BASE_URL + '/api/appointments/update-status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    appointment_id: data.appointment_id,
+                    status: status,
+                    appointment_type: appointmentType
+                })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка при обновлении статуса: ' + response.status);
+                    }
+                    return response.json();
+                });
+        })
+        .catch(error => {
+            console.error('Ошибка при обновлении статуса назначения:', error);
+            return { success: false, message: error.message };
+        });
+}
+
+// Обновленная функция сохранения заключения с изменением статуса назначения
 function saveConclusion() {
     const conclusion = document.getElementById('doctor-conclusion').value.trim();
     const recommendations = document.getElementById('doctor-recommendations').value.trim();
@@ -471,7 +528,7 @@ function saveConclusion() {
     }
 
     let resultId = null;
-    // Здесь попытка найти result_id (оставьте как есть)
+    // Здесь попытка найти result_id
     if (analysisResults && analysisResults.result_id) {
         resultId = analysisResults.result_id;
     }
@@ -488,7 +545,7 @@ function saveConclusion() {
     if (!resultId) {
         showNotification(
             'Ошибка',
-            'Не удалось определить result_id для сохранения заключения. Проверьте структуру ответа анализа (см. консоль разработчика).<br>Возможно, сервер не возвращает result_id.<br>Попросите backend-разработчика добавить result_id в ответ /api/analyze.',
+            'Не удалось определить result_id для сохранения заключения.',
             'error'
         );
         return;
@@ -504,6 +561,7 @@ function saveConclusion() {
         result_id: resultId
     };
 
+    // 1. Сначала сохраняем заключение
     fetch(SERVER_BASE_URL + '/api/diagnoses', {
         method: 'POST',
         headers: {
@@ -518,9 +576,20 @@ function saveConclusion() {
             return response.json();
         })
         .then(data => {
+            console.log('Заключение успешно сохранено:', data);
+
+            // 2. Затем обновляем статус назначения на "завершен"
+            return updateAppointmentStatus(patientId, 'completed');
+        })
+        .then(statusUpdateResult => {
             hideLoader();
-            showNotification('Успех', 'Заключение успешно сохранено', 'success');
-            // --- ДОБАВЛЕНО: сразу обновить историю снимков ---
+            if (statusUpdateResult && statusUpdateResult.success) {
+                showNotification('Успех', 'Заключение сохранено, назначение завершено', 'success');
+            } else {
+                showNotification('Предупреждение', 'Заключение сохранено, но статус назначения не обновлен', 'warning');
+            }
+
+            // Обновляем историю снимков
             if (window.selectedPatient && window.selectedPatient.id && typeof window.loadPatientHistory === 'function') {
                 window.loadPatientHistory(window.selectedPatient.id);
             }

@@ -380,24 +380,136 @@
 
 /* Статусы */
 .status-badge {
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  margin-left: 8px;
-  text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-left: 8px;
+    text-transform: uppercase;
 }
 
 .status-emergency {
-  background-color: var(--danger-color);
-  color: white;
+    background-color: var(--danger-color);
+    color: white;
 }
 
+/* Стили для статуса "В приеме" */
 .status-in-progress {
-  background-color: var(--primary-color);
-  color: white;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 12px;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* Статус "Осмотр" */
+.status-examination {
+    background-color: #2196F3; /* Синий */
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* Статус "Анализ снимков" */
+.status-analysis {
+    background-color: #9C27B0; /* Фиолетовый */
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* Статус "Лечение" */
+.status-treatment {
+    background-color: #FF5722; /* Оранжевый */
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* Статус "Консультация" */
+.status-consultation {
+    background-color: #4CAF50; /* Зеленый */
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* Выделение активной записи */
+.appointment-active {
+    background-color: rgba(0, 150, 136, 0.05);
+    border-left: 3px solid var(--primary-color);
+}
+
+/* Анимация перехода для записи */
+.patient-item {
+    transition: all 0.3s ease;
+}
+
+.patient-item.appointment-active {
+    transform: translateX(3px);
+}
+
+/* Состояние наведения на запись в активном приеме */
+.appointment-active:hover {
+    background-color: rgba(0, 150, 136, 0.1);
+}
+
+/* Стили для категории "Завершено" */
+.category-completed {
+    background-color: #4CAF50; /* Зеленый */
+    color: white;
+}
+
+/* Стили для статуса "Завершено" */
+.status-completed {
+    background-color: #4CAF50; /* Зеленый */
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Стили для статуса "В приеме" */
+.status-in-progress {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* Стили для разных типов приема */
+.category-in-progress {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Выделение завершенных записей */
+.patient-item:has(.status-completed) {
+    background-color: rgba(76, 175, 80, 0.05);
+    border-left: 3px solid #4CAF50;
+    opacity: 0.8;
+}
+
+/* Эффект наведения на завершенные записи */
+.patient-item:has(.status-completed):hover {
+    opacity: 1;
+    background-color: rgba(76, 175, 80, 0.1);
+}
+
+/* Анимация появления индикатора завершенного назначения */
+@keyframes completed-fade-in {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.status-completed {
+    animation: completed-fade-in 0.5s ease-out;
 }
 
 /* Адаптивность модального окна */

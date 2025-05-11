@@ -193,7 +193,6 @@ function setupModalEventHandlers(modal, patientId, patientName, patientDetails, 
   startBtn.addEventListener('click', function() {
     if (selectedType) {
       startAppointmentByType(selectedType, patientId, patientName, patientCard);
-      updatePatientStatus(patientId);
       closeModal();
     } else {
       alert('Пожалуйста, выберите тип приема');
@@ -201,16 +200,36 @@ function setupModalEventHandlers(modal, patientId, patientName, patientDetails, 
   });
 }
 
-/**
- * Функция для перехода к выбранному типу приема
- */
+// Функция startAppointmentByType - примерно строка 169-194
 function startAppointmentByType(type, patientId, patientName, patientCard) {
-  // Сохраняем данные о пациенте для использования в других страницах
+  // Преобразование UI типа в тип для базы данных
+  let dbType = 'diagnostics'; // По умолчанию
+
+  switch(type) {
+    case 'analysis':
+      dbType = 'diagnostics';
+      break;
+    case 'treatment':
+      dbType = 'treatment';
+      break;
+    case 'examination':
+      dbType = 'diagnostics'; // или другое подходящее значение
+      break;
+    case 'consultation':
+      dbType = 'consultation';
+      break;
+  }
+
+  // Сохраняем UI тип для отображения, но используем правильный dbType для API
+  sessionStorage.setItem('appointmentType', dbType);
+  sessionStorage.setItem('appointmentUIType', type); // Для интерфейса
   sessionStorage.setItem('currentPatientId', patientId);
   sessionStorage.setItem('currentPatientName', patientName);
   sessionStorage.setItem('currentPatientCard', patientCard);
-  sessionStorage.setItem('appointmentType', type);
   sessionStorage.setItem('appointmentStartTime', new Date().toISOString());
+
+  // Обновляем статус приема в БД - здесь важно использовать правильный статус
+  updatePatientStatus(patientId, 'in_progress'); // in_progress - правильный статус
 
   // Перенаправление на соответствующую страницу
   switch (type) {
@@ -218,7 +237,6 @@ function startAppointmentByType(type, patientId, patientName, patientCard) {
       window.location.href = '../examination/examination.html';
       break;
     case 'analysis':
-      // Переход на analysis.html с передачей id пациента через query string
       window.location.href = `../analysis/analysis.html?patient_id=${encodeURIComponent(patientId)}`;
       break;
     case 'treatment':
@@ -230,21 +248,189 @@ function startAppointmentByType(type, patientId, patientName, patientCard) {
   }
 }
 
+// Функция updatePatientStatus - строки ~194-250
+function updatePatientStatus(patientId, status) {
+  // Находим запись в таблице appointments для данного пациента
+  const appointmentId = findAppointmentIdByPatientId(patientId);
+
+  if (!appointmentId) {
+    console.error('Не найдена запись о приеме для пациента с ID:', patientId);
+    return;
+  }
+
+  // Используем только правильные значения статусов
+  let dbStatus = 'in_progress'; // По умолчанию для безопасности
+
+  // Можем сохранить исходный вид действия для отображения в интерфейсе
+  let statusText = 'В приеме';
+  let statusClass = 'status-in-progress';
+
+  // Опционально: сохраняем тип действия, но не меняем статус
+  // (статус всегда должен быть из appointment_status_enum)
+  switch (status) {
+    case 'examination':
+      statusText = 'Осмотр';
+      break;
+    case 'analysis':
+      statusText = 'Анализ снимков';
+      break;
+    case 'treatment':
+      statusText = 'Лечение';
+      break;
+    case 'consultation':
+      statusText = 'Консультация';
+      break;
+      // Если передается правильный статус, используем его
+    case 'scheduled':
+    case 'in_progress':
+    case 'completed':
+    case 'canceled':
+    case 'no_show':
+      dbStatus = status;
+      break;
+  }
+
+  // Отправляем запрос на сервер для обновления статуса
+  updateAppointmentStatusInDB(appointmentId, dbStatus, sessionStorage.getItem('appointmentUIType') || 'diagnostics')
+      .then(success => {
+        if (success) {
+          console.log(`Статус приема (ID: ${appointmentId}) обновлен на ${dbStatus}`);
+          // Обновляем DOM - для отображения используем UI значения
+          updatePatientStatusInDOM(patientId, statusText, statusClass);
+        } else {
+          console.error('Не удалось обновить статус приема');
+        }
+      });
+}
+
+
+/**
+ * Отправляет запрос к API для обновления статуса записи в БД
+ */
+async function updateAppointmentStatusInDB(appointmentId, status, appointmentType) {
+  try {
+    // Формируем данные для запроса
+    const data = {
+      appointment_id: appointmentId,
+      status: status,
+      appointment_type: appointmentType,
+      updated_at: new Date().toISOString()
+    };
+
+    // Формируем URL для запроса
+    const url = 'http://localhost:8000/api/appointments/update-status';
+
+    // В демо-режиме просто возвращаем успех без реального запроса
+    const isDemoMode = true;
+
+    if (isDemoMode) {
+      console.log('Демо-режим: имитация успешного обновления статуса в БД', data);
+      return true;
+    }
+
+    // Отправка запроса на сервер
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result.success;
+  } catch (error) {
+    console.error('Ошибка при обновлении статуса в БД:', error);
+    return false;
+  }
+}
+
+/**
+ * Находит ID записи о приеме для пациента
+ * В реальной системе этот ID может приходить непосредственно с сервера
+ * Здесь мы эмулируем эту функциональность
+ */
+function findAppointmentIdByPatientId(patientId) {
+  // В реальной системе здесь был бы поиск в данных,
+  // которые приходят с сервера
+  // Для демонстрации просто считаем, что appointmentId = patientId
+  return patientId;
+}
+
 /**
  * Обновление статуса пациента после начала приема
  */
-function updatePatientStatus(patientId) {
-  // В реальной системе здесь был бы API-запрос для обновления статуса
-  console.log(`Обновлен статус пациента с ID: ${patientId} на "В приеме"`);
+function updatePatientStatus(patientId, appointmentType) {
+  // Находим запись в таблице appointments для данного пациента
+  const appointmentId = findAppointmentIdByPatientId(patientId);
 
-  // Для демонстрации можно обновить DOM
+  if (!appointmentId) {
+    console.error('Не найдена запись о приеме для пациента с ID:', patientId);
+    return;
+  }
+
+  // Определяем статус в зависимости от выбранного действия
+  let newStatus = 'in_progress'; // базовый статус "в процессе"
+  let statusText = 'В приеме';
+  let statusClass = 'status-in-progress';
+
+  switch (appointmentType) {
+    case 'examination':
+      statusText = 'Осмотр';
+      break;
+    case 'analysis':
+      statusText = 'Анализ снимков';
+      break;
+    case 'treatment':
+      statusText = 'Лечение';
+      break;
+    case 'consultation':
+      statusText = 'Консультация';
+      break;
+  }
+
+  // Отправляем запрос на сервер для обновления статуса
+  updateAppointmentStatusInDB(appointmentId, newStatus, appointmentType)
+      .then(success => {
+        if (success) {
+          console.log(`Статус приема (ID: ${appointmentId}) обновлен на ${newStatus} (${appointmentType})`);
+
+          // Обновляем DOM - меняем отображение статуса пациента в списке
+          updatePatientStatusInDOM(patientId, statusText, statusClass);
+        } else {
+          console.error('Не удалось обновить статус приема');
+        }
+      })
+      .catch(error => {
+        console.error('Ошибка при обновлении статуса:', error);
+        // Все равно обновляем DOM, даже если запрос к API не удался
+        updatePatientStatusInDOM(patientId, statusText, statusClass);
+      });
+}
+
+/**
+ * Обновляет отображение статуса пациента в DOM
+ */
+/**
+ * Обновляет отображение статуса пациента в DOM
+ */
+function updatePatientStatusInDOM(patientId, statusText, statusClass) {
   const patientItems = document.querySelectorAll('.patient-item');
+
   patientItems.forEach(item => {
-    const button = item.querySelector('button[data-patient-id="' + patientId + '"]');
-    if (button || item.dataset.patientId === patientId) {
+    // Проверяем, соответствует ли элемент искомому пациенту
+    const itemPatientId = item.dataset.patientId;
+    const button = item.querySelector(`button[data-patient-id="${patientId}"]`);
+
+    if (button || itemPatientId === patientId) {
+      // Создаем элемент статуса
       const statusElem = document.createElement('span');
-      statusElem.className = 'status-in-progress';
-      statusElem.textContent = 'В приеме';
+      statusElem.className = statusClass || 'status-in-progress';
+      statusElem.textContent = statusText;
 
       // Заменяем кнопку на статус
       if (button) {
@@ -256,6 +442,9 @@ function updatePatientStatus(patientId) {
           actions.appendChild(statusElem);
         }
       }
+
+      // Добавляем визуальное выделение строки
+      item.classList.add('appointment-active');
     }
   });
 }
@@ -424,13 +613,30 @@ async function loadPatientsFromDB(dateObj) {
       const dd = String(dateObj.getDate()).padStart(2, '0');
       dateParam = `${yyyy}-${mm}-${dd}`;
     }
+
+    // Добавляем параметр для принудительного обновления (борьба с кэшированием)
+    const cacheBuster = `&_=${Date.now()}`;
+
     // Передаем дату в API
     const url = dateParam
-      ? `http://localhost:8000/api/patients/by-date?date=${dateParam}`
-      : 'http://localhost:8000/api/patients/today';
-    const response = await fetch(url);
+        ? `http://localhost:8000/api/patients/by-date?date=${dateParam}${cacheBuster}`
+        : `http://localhost:8000/api/patients/today${cacheBuster}`;
+
+    console.log('Загрузка пациентов, URL:', url);
+
+    const response = await fetch(url, {
+      headers: { 'Cache-Control': 'no-cache' } // Отключаем кэширование
+    });
+
     if (!response.ok) throw new Error('Ошибка загрузки данных пациентов');
     data = await response.json();
+
+    // Отладочная информация - проверяем данные Морозова
+    const morozov = data.find(p => p.id === 9 || (p.name && p.name.includes('Морозов')));
+    if (morozov) {
+      console.log('Данные пациента Морозов из API:', morozov);
+    }
+
   } catch (e) {
     console.error('Ошибка загрузки пациентов:', e);
     patientList.innerHTML = '<div style="padding:20px;color:red;">Ошибка загрузки данных пациентов</div>';
@@ -441,10 +647,27 @@ async function loadPatientsFromDB(dateObj) {
   const currentDoctorId = localStorage.getItem('user_id');
   if (currentDoctorId) {
     data = data.filter(
-      p => String(p.doctor_id) === String(currentDoctorId)
+        p => String(p.doctor_id) === String(currentDoctorId)
     );
   }
-  // --- конец фильтрации ---
+
+  // --- УЛУЧШЕННАЯ ФИЛЬТРАЦИЯ ПО СТАТУСУ ---
+  data = data.filter(patient => {
+    // Проверяем все возможные варианты статуса "completed"
+    const status = String(patient.status || '').toLowerCase();
+    const isCompleted = status === 'completed' || status === 'завершено';
+
+    // Для отладки - проверяем конкретно Морозова
+    if (patient.id === 9 || (patient.name && patient.name.includes('Морозов'))) {
+      console.log('Фильтрация Морозова:', patient.name, 'Статус:', status, 'Исключен:', isCompleted);
+    }
+
+    // Исключаем пациентов с завершенным статусом
+    return !isCompleted;
+  });
+
+  // Обрабатываем пациентов для корректного отображения статусов
+  data = processLoadedPatients(data);
 
   // Сохраняем последний список пациентов для поиска
   lastLoadedPatients = data;
@@ -456,16 +679,69 @@ async function loadPatientsFromDB(dateObj) {
     return h * 60 + m;
   };
 
-  // Используем поля напрямую из объекта p
-  const getStatus = p => p.status;
-  const getTime = p => p.time;
+  // Проверяем, остался ли Морозов после всех фильтраций
+  const morozovAfterFilter = data.find(p => p.id === 9 || (p.name && p.name.includes('Морозов')));
+  if (morozovAfterFilter) {
+    console.log('Морозов остался после всех фильтраций:', morozovAfterFilter);
+  } else {
+    console.log('Морозов был исключен из списка отображаемых пациентов');
+  }
 
+  // Разделяем пациентов на группы
   const emergency = data
-    .filter(p => getStatus(p) === 'экстренный')
-    .sort((a, b) => parseTime(getTime(a)) - parseTime(getTime(b)));
+      .filter(p => {
+        // Проверка экстренного статуса
+        const isEmergency =
+            p.status === 'экстренный' ||
+            p.status === 'emergency' ||
+            p.appointment_type === 'emergency' ||
+            (typeof p.type === 'string' && p.type.toLowerCase().includes('экстрен'));
+
+        // Дополнительная проверка для отладки Морозова
+        if (p.id === 9 || (p.name && p.name.includes('Морозов'))) {
+          console.log('Проверка экстренности Морозова:', isEmergency, p);
+        }
+
+        return isEmergency;
+      })
+      .sort((a, b) => parseTime(a.time) - parseTime(b.time));
+
+  const inProgress = data
+      .filter(p => {
+        const status = String(p.status || '').toLowerCase();
+        return status === 'in_progress' ||
+            status === 'treatment' ||
+            status === 'analysis' ||
+            status === 'examination' ||
+            status === 'consultation';
+      })
+      .sort((a, b) => parseTime(a.time) - parseTime(b.time));
+
+  // Улучшенная логика для ожидающих
   const waiting = data
-    .filter(p => getStatus(p) !== 'экстренный')
-    .sort((a, b) => parseTime(getTime(a)) - parseTime(getTime(b)));
+      .filter(p => {
+        // Прямая проверка статуса "scheduled"
+        const status = String(p.status || '').toLowerCase();
+        const isScheduled = status === 'scheduled';
+
+        // Не экстренные
+        const notEmergency =
+            status !== 'экстренный' &&
+            status !== 'emergency' &&
+            p.appointment_type !== 'emergency' &&
+            !(typeof p.type === 'string' && p.type.toLowerCase().includes('экстрен'));
+
+        // Не в процессе
+        const notInProgress =
+            status !== 'in_progress' &&
+            status !== 'treatment' &&
+            status !== 'analysis' &&
+            status !== 'examination' &&
+            status !== 'consultation';
+
+        return (isScheduled || (notEmergency && notInProgress));
+      })
+      .sort((a, b) => parseTime(a.time) - parseTime(b.time));
 
   // Экстренные
   if (emergency.length > 0) {
@@ -475,6 +751,19 @@ async function loadPatientsFromDB(dateObj) {
       <div class="category-header category-emergency">ЭКСТРЕННЫЕ ${emergency.length}</div>
     `;
     emergency.forEach(p => {
+      cat.appendChild(createPatientItem(p));
+    });
+    patientList.appendChild(cat);
+  }
+
+  // В процессе приема
+  if (inProgress.length > 0) {
+    const cat = document.createElement('div');
+    cat.className = 'patient-category';
+    cat.innerHTML = `
+      <div class="category-header category-in-progress">В ПРИЕМЕ ${inProgress.length}</div>
+    `;
+    inProgress.forEach(p => {
       cat.appendChild(createPatientItem(p));
     });
     patientList.appendChild(cat);
@@ -497,9 +786,7 @@ async function loadPatientsFromDB(dateObj) {
   initStartAppointmentButtons();
 }
 
-/**
- * Создание DOM-элемента пациента
- */
+// Обновленная функция создания элемента пациента
 function createPatientItem(patient) {
   const item = document.createElement('div');
   item.className = 'patient-item';
@@ -511,10 +798,16 @@ function createPatientItem(patient) {
   const type = patient.type;
   const reason = patient.reason;
 
-  // Формируем статус-бейдж
-  let statusBadge = '';
-  if (status === 'экстренный') {
-    statusBadge = `<span class="status-badge status-emergency">экстренный</span>`;
+  // Формируем отображение статуса
+  let statusHtml = '';
+
+  // Используем statusDisplay, если он есть (добавляется в processLoadedPatients)
+  if (patient.statusDisplay) {
+    if (patient.statusDisplay.text) {
+      statusHtml = `<span class="status-badge ${patient.statusDisplay.class}">${patient.statusDisplay.text}</span>`;
+    }
+  } else if (status === 'экстренный') {
+    statusHtml = `<span class="status-badge status-emergency">экстренный</span>`;
   }
 
   // Формируем строку назначения (reason)
@@ -523,24 +816,112 @@ function createPatientItem(patient) {
     reasonHtml = `<div class="patient-reason"><span style="color:#888;">Назначение:</span> ${reason}</div>`;
   }
 
+  // Определяем, нужно ли отображать кнопку или статус
+  let actionsHtml = '';
+
+  // Если статус завершен или в процессе приема, показываем статус вместо кнопки
+  if (status === 'completed') {
+    actionsHtml = `<div class="patient-actions"><span class="status-completed">Завершено ✓</span></div>`;
+  } else if (status === 'in_progress' || status === 'treatment' || status === 'analysis' ||
+      status === 'examination' || status === 'consultation') {
+    // Если есть statusDisplay, используем его
+    if (patient.statusDisplay) {
+      actionsHtml = `<div class="patient-actions"><span class="${patient.statusDisplay.class}">${patient.statusDisplay.text}</span></div>`;
+    } else {
+      actionsHtml = `<div class="patient-actions"><span class="status-in-progress">В приеме</span></div>`;
+    }
+  } else {
+    // Для остальных показываем кнопку "Начать прием"
+    actionsHtml = `
+      <div class="patient-actions">
+        <button class="start-appointment-btn"
+          data-patient-id="${patient.id}"
+          data-patient-name="${patient.name}"
+          data-patient-age="${patient.age}"
+          data-patient-gender="${patient.gender}"
+          data-appointment-type="${type || ''}"
+          data-patient-status="${status || ''}"
+          data-card="${patient.card || ''}"
+        >Начать прием</button>
+      </div>
+    `;
+  }
+
   item.innerHTML = `
     <div class="patient-time">${time || ''}</div>
     <div class="patient-info">
-      <div class="patient-name">${patient.name} ${statusBadge}</div>
+      <div class="patient-name">${patient.name} ${statusHtml}</div>
       <div class="patient-details">${patient.gender}, ${patient.age} лет • ${type || ''}</div>
       ${reasonHtml}
     </div>
-    <div class="patient-actions">
-      <button class="start-appointment-btn"
-        data-patient-id="${patient.id}"
-        data-patient-name="${patient.name}"
-        data-patient-age="${patient.age}"
-        data-patient-gender="${patient.gender}"
-        data-appointment-type="${type || ''}"
-        data-patient-status="${status || ''}"
-        data-card="${patient.card || ''}"
-      >Начать прием</button>
-    </div>
+    ${actionsHtml}
   `;
   return item;
+}
+
+/**
+ * Функция обработки загруженных пациентов для отображения правильных статусов
+ * @param {Array} patients - массив пациентов
+ */
+function processLoadedPatients(patients) {
+  // Клонируем массив пациентов, чтобы не изменять оригинал
+  let processed = JSON.parse(JSON.stringify(patients));
+
+  // Обрабатываем пациентов, добавляя дополнительные свойства для отображения
+  processed.forEach(patient => {
+    // Проверяем статус назначения
+    if (patient.status === 'completed') {
+      // Для завершенных назначений добавляем специальное отображение
+      patient.statusDisplay = {
+        text: 'Завершено',
+        class: 'status-completed',
+        icon: '✓'
+      };
+    } else if (patient.status === 'in_progress' || patient.status === 'treatment' ||
+        patient.status === 'analysis' || patient.status === 'examination' ||
+        patient.status === 'consultation') {
+      // Для назначений в процессе выполнения
+      let statusText = 'В приеме';
+      let statusClass = 'status-in-progress';
+
+      // Определяем текст статуса на основе типа
+      switch (patient.status) {
+        case 'treatment':
+          statusText = 'Лечение';
+          statusClass = 'status-treatment';
+          break;
+        case 'analysis':
+          statusText = 'Анализ снимков';
+          statusClass = 'status-analysis';
+          break;
+        case 'examination':
+          statusText = 'Осмотр';
+          statusClass = 'status-examination';
+          break;
+        case 'consultation':
+          statusText = 'Консультация';
+          statusClass = 'status-consultation';
+          break;
+      }
+
+      patient.statusDisplay = {
+        text: statusText,
+        class: statusClass
+      };
+    } else if (patient.status === 'emergency') {
+      // Для экстренных пациентов
+      patient.statusDisplay = {
+        text: 'Экстренный',
+        class: 'status-emergency'
+      };
+    } else {
+      // Для ожидающих пациентов (status = scheduled или другие)
+      patient.statusDisplay = {
+        text: '',
+        class: ''
+      };
+    }
+  });
+
+  return processed;
 }

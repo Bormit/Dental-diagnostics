@@ -62,6 +62,7 @@ def get_patients_today():
     
     return jsonify(result)
 
+
 @bp.route('/api/patients/by-date', methods=['GET'])
 def get_patients_by_date():
     """
@@ -85,7 +86,8 @@ def get_patients_by_date():
     for appt in appointments:
         p = appt.patient
         if p.birth_date:
-            age = selected_date.year - p.birth_date.year - ((selected_date.month, selected_date.day) < (p.birth_date.month, p.birth_date.day))
+            age = selected_date.year - p.birth_date.year - (
+                        (selected_date.month, selected_date.day) < (p.birth_date.month, p.birth_date.day))
         else:
             age = ""
         gender = "М" if p.gender == "male" else ("Ж" if p.gender == "female" else "Другое")
@@ -97,7 +99,15 @@ def get_patients_by_date():
             'follow_up': 'контроль',
             'emergency': 'экстренный'
         }.get(appt.appointment_type, appt.appointment_type)
-        status = 'экстренный' if appt.appointment_type == 'emergency' else 'ожидает'
+
+        # ИСПРАВЛЕНИЕ: используем реальный статус из базы данных
+        # Если статус установлен в БД, используем его
+        if appt.status:
+            status = appt.status
+        else:
+            # Если статуса нет, используем логику по умолчанию
+            status = 'экстренный' if appt.appointment_type == 'emergency' else 'scheduled'
+
         result.append({
             "id": str(p.patient_id),
             "name": p.full_name,
@@ -105,7 +115,7 @@ def get_patients_by_date():
             "age": age,
             "type": appt_type,
             "time": appt_time,
-            "status": status,
+            "status": status,  # Используем правильный статус
             "card": str(p.patient_id),
             "reason": appt.reason,
             "doctor_id": appt.doctor_id

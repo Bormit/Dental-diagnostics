@@ -79,13 +79,14 @@ os.makedirs(RESULTS_FOLDER, exist_ok=True)
 os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
 
 # Импорт и регистрация блюпринтов
-from .routes import auth, analysis, patients, diagnoses, status
+from .routes import auth, analysis, patients, diagnoses, status, appointments
 
 app.register_blueprint(auth.bp)
 app.register_blueprint(analysis.bp)
 app.register_blueprint(patients.bp)
 app.register_blueprint(diagnoses.bp)
 app.register_blueprint(status.bp)
+app.register_blueprint(appointments.bp)
 
 # Корневой маршрут
 @app.route('/', methods=['GET'])
