@@ -1,9 +1,10 @@
-from ..db import db
 from datetime import datetime
-from sqlalchemy.dialects.postgresql import JSON, ENUM
-from sqlalchemy import LargeBinary
 
+from sqlalchemy import LargeBinary
+from sqlalchemy.dialects.postgresql import JSON, ENUM
 from werkzeug.security import generate_password_hash, check_password_hash
+
+from ..db import db
 
 # Создание ENUM типов
 user_role = ENUM('admin', 'doctor', name='user_role_enum', create_type=True)
@@ -178,3 +179,4 @@ class Appointment(db.Model):
 
     # Отношения
     patient = db.relationship('Patient', back_populates='appointments')
+

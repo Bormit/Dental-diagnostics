@@ -218,7 +218,8 @@ function startAppointmentByType(type, patientId, patientName, patientCard) {
       window.location.href = '../examination/examination.html';
       break;
     case 'analysis':
-      window.location.href = '../analysis/analysis.html';
+      // Переход на analysis.html с передачей id пациента через query string
+      window.location.href = `../analysis/analysis.html?patient_id=${encodeURIComponent(patientId)}`;
       break;
     case 'treatment':
       window.location.href = '../treatment/treatment.html';

@@ -22,7 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-/src/backend/api/uploads/
-/src/backend/api/results/
+/src/backend/AI/uploads/
+/src/backend/AI/results/
 /src/backend/AI/data-processing.py
 /src/backend/AI/dental-model.py

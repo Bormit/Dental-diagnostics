@@ -1,4 +1,4 @@
-/* Prescriptions Page Stylesheet */
+/* Analysis List Page Stylesheet */
 :root {
     /* Color Palette */
     --primary-color: #009688;
@@ -159,8 +159,8 @@
     background-color: var(--primary-light);
 }
 
-/* Prescriptions Table */
-.prescriptions-table {
+/* Table Styles */
+.analysis-table {
     width: 100%;
     border-collapse: collapse;
     background-color: var(--white);
@@ -168,7 +168,7 @@
     margin-bottom: 20px;
 }
 
-.prescriptions-table th {
+.analysis-table th {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 2px solid var(--border-color);
@@ -177,12 +177,12 @@
     color: var(--text-color);
 }
 
-.prescriptions-table td {
+.analysis-table td {
     padding: 12px 15px;
     border-bottom: 1px solid var(--border-color);
 }
 
-.prescriptions-table tr:hover {
+.analysis-table tr:hover {
     background-color: var(--primary-light);
 }
 
@@ -204,6 +204,28 @@
 .status-in-progress {
     background-color: var(--primary-color);
     color: var(--white);
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge.success {
+    background-color: #e6f4ea;
+    color: #1e8e3e;
+}
+
+.status-badge.warning {
+    background-color: #fef7e0;
+    color: #b06000;
+}
+
+.status-badge.error {
+    background-color: #fce8e6;
+    color: #d93025;
 }
 
 /* Table Action Buttons */

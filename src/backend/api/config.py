@@ -4,8 +4,8 @@ import logging
 # Конфигурация
 DB_URI = 'postgresql://dentaladmin:12345678@localhost:5432/dental_ai'
 IMAGE_SIZE = 256
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
-RESULTS_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
+UPLOAD_FOLDER = r'C:\Users\user\IDE_Projects\WebstormProjects\Dental_diagnostics\src\backend\AI\uploads'
+RESULTS_FOLDER = r'C:\Users\user\IDE_Projects\WebstormProjects\Dental_diagnostics\src\backend\AI\results'
 MODEL_PATH = os.environ.get('MODEL_PATH', os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                                                       'AI', 'saved_models', 'enhanced_model_20250505-220821.keras'))
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'bmp', 'tif', 'tiff', 'dcm'}

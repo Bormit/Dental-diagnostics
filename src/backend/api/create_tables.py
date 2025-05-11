@@ -18,7 +18,7 @@ def dump_sql():
 
 
 # Сохраняем SQL в файл
-with open('create_tables.sql', 'w') as f:
+with open('../../../sql/create_tables.sql', 'w') as f:
     f.write(dump_sql())
 
 print("SQL успешно сгенерирован в файле create_tables.sql")

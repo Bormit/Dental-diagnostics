@@ -252,3 +252,29 @@ def create_visualization(original_image, results):
     except Exception as e:
         print(f"Ошибка при создании визуализации: {str(e)}")
         raise
+
+
+def get_last_diagnosis(diagnoses):
+    """
+    Возвращает последний диагноз из списка диагнозов пациента.
+    Ожидает список словарей с ключами diagnosis_id и diagnosis_text.
+    """
+    if not diagnoses or not isinstance(diagnoses, list):
+        return None
+    # Найти диагноз с максимальным diagnosis_id
+    last_diag = max(diagnoses, key=lambda d: d.get('diagnosis_id', 0), default=None)
+    return last_diag
+
+
+def enrich_patients_with_diagnoses(patients, get_diagnoses_func):
+    """
+    Для каждого пациента добавляет diagnoses (список диагнозов) и lastDiagnosis (последний диагноз).
+    get_diagnoses_func(patient_id) должен возвращать список диагнозов для пациента.
+    """
+    from src.backend.api.utils.analysis import get_last_diagnosis
+    for patient in patients:
+        diagnoses = get_diagnoses_func(patient['id'])
+        patient['diagnoses'] = diagnoses if diagnoses else []
+        last_diag = get_last_diagnosis(diagnoses)
+        patient['lastDiagnosis'] = last_diag['diagnosis_text'] if last_diag else '-'
+    return patients

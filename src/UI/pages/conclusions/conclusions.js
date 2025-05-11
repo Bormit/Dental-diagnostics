@@ -1,3 +1,8 @@
+const SERVER_BASE_URL = 'http://localhost:8000';
+const CONCLUSIONS_PER_PAGE = 10;
+let currentPage = 1;
+let lastConclusions = [];
+
 document.addEventListener('DOMContentLoaded', function() {
     // Modal Window Management
     const createConclusionBtn = document.getElementById('createConclusionBtn');
@@ -11,6 +16,12 @@ document.addEventListener('DOMContentLoaded', function() {
         createConclusionModal.style.display = 'flex';
         // Reset form when opening
         document.getElementById('conclusionForm').reset();
+        // Установить сегодняшнюю дату по умолчанию
+        const dateInput = document.getElementById('conclusionDate');
+        if (dateInput) {
+            const today = new Date();
+            dateInput.value = today.toISOString().slice(0, 10);
+        }
     }
 
     function closeModal() {
@@ -18,79 +29,94 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Event Listeners for Modal Navigation
-    createConclusionBtn.addEventListener('click', openModal);
-    closeModalBtn.addEventListener('click', closeModal);
-    cancelConclusionBtn.addEventListener('click', closeModal);
-
-    // Close modal when clicking outside
-    createConclusionModal.addEventListener('click', function(e) {
-        if (e.target === createConclusionModal) {
-            closeModal();
-        }
-    });
+    if (createConclusionBtn) {
+        createConclusionBtn.addEventListener('click', function() {
+            window.location.href = '../analysis/analysis.html';
+        });
+    }
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeModal);
+    }
+    if (cancelConclusionBtn) {
+        cancelConclusionBtn.addEventListener('click', closeModal);
+    }
+    if (createConclusionModal) {
+        createConclusionModal.addEventListener('click', function(e) {
+            if (e.target === createConclusionModal) {
+                closeModal();
+            }
+        });
+    }
 
     // Conclusion Saving Logic
-    saveConclusionBtn.addEventListener('click', function() {
-        const form = document.getElementById('conclusionForm');
+    if (saveConclusionBtn && createConclusionModal) {
+        saveConclusionBtn.addEventListener('click', function() {
+            const form = document.getElementById('conclusionForm');
 
-        if (form.checkValidity()) {
-            // Collect form data
-            const formData = {
-                patient: document.getElementById('patientSearch').value,
-                doctor: document.getElementById('conclusionDoctor').value,
-                diagnosis: document.getElementById('conclusionDiagnosis').value,
-                conclusionText: document.getElementById('conclusionText').value,
-                recommendations: document.getElementById('conclusionRecommendations').value
-            };
+            if (form.checkValidity()) {
+                // Collect form data
+                const formData = {
+                    patient: document.getElementById('patientSearch').value,
+                    doctor: document.getElementById('conclusionDoctor').value,
+                    diagnosis: document.getElementById('conclusionDiagnosis').value,
+                    conclusionText: document.getElementById('conclusionText').value,
+                    recommendations: document.getElementById('conclusionRecommendations').value,
+                    date: document.getElementById('conclusionDate').value // Новое поле
+                };
 
-            // TODO: Implement actual server-side save mechanism
-            console.log('Saving conclusion:', formData);
+                // TODO: Implement actual server-side save mechanism
+                console.log('Saving conclusion:', formData);
 
-            // Simulate server save
-            setTimeout(() => {
-                alert('Заключение успешно сохранено');
-                closeModal();
-                refreshConclusionsList();
-            }, 500);
-        } else {
-            form.reportValidity();
-        }
-    });
+                // Simulate server save
+                setTimeout(() => {
+                    alert('Заключение успешно сохранено');
+                    closeModal();
+                    refreshConclusionsList();
+                }, 500);
+            } else {
+                form.reportValidity();
+            }
+        });
+    }
 
     // File Upload Handling
     const fileUpload = document.querySelector('.file-upload');
     const fileInput = document.getElementById('xrayUpload');
 
-    fileUpload.addEventListener('click', () => fileInput.click());
+    if (fileUpload && fileInput) {
+        fileUpload.addEventListener('click', () => fileInput.click());
 
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        const label = fileUpload.querySelector('.file-upload-label');
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const label = fileUpload.querySelector('.file-upload-label');
 
-        if (file) {
-            label.textContent = `Выбран файл: ${file.name}`;
-            label.classList.add('file-selected');
-        } else {
-            label.textContent = 'Выберите файл или перетащите снимок сюда';
-            label.classList.remove('file-selected');
-        }
-    });
+            if (file) {
+                label.textContent = `Выбран файл: ${file.name}`;
+                label.classList.add('file-selected');
+            } else {
+                label.textContent = 'Выберите файл или перетащите снимок сюда';
+                label.classList.remove('file-selected');
+            }
+        });
+    }
 
     // Patient Search Functionality
     const patientSearchBtn = document.querySelector('.search-patient-btn');
     const patientSearchInput = document.getElementById('patientSearch');
 
-    patientSearchBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        const searchTerm = patientSearchInput.value.trim();
+    if (patientSearchBtn && patientSearchInput) {
+        patientSearchBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const searchTerm = patientSearchInput.value.trim();
 
-        if (searchTerm) {
-            // TODO: Implement actual patient search API call
-            searchPatients(searchTerm);
-        } else {
-            alert('Введите ФИО пациента для поиска');
-        }
-    });
+            if (searchTerm) {
+                // TODO: Implement actual patient search API call
+                searchPatients(searchTerm);
+            } else {
+                alert('Введите ФИО пациента для поиска');
+            }
+        });
+    }
 
     function searchPatients(searchTerm) {
         // Placeholder for patient search logic
@@ -111,33 +137,58 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchConclusionsBtn = document.getElementById('searchConclusionsBtn');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
 
-    searchConclusionsBtn.addEventListener('click', function() {
-        const searchParams = {
-            patientName: document.getElementById('patientName').value,
-            dateFrom: document.getElementById('dateFrom').value,
-            dateTo: document.getElementById('dateTo').value,
-            doctor: document.getElementById('doctor').value
-        };
+    // Динамическая загрузка докторов в select#doctor
+    function loadDoctors() {
+        fetch(`${SERVER_BASE_URL}/api/doctors`)
+            .then(res => res.json())
+            .then(doctors => {
+                const doctorSelect = document.getElementById('doctor');
+                if (!doctorSelect) return;
+                const prevValue = doctorSelect.value;
+                doctorSelect.innerHTML = '<option value="">Все врачи</option>';
+                doctors.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.id; // user_id
+                    option.textContent = doc.full_name + (doc.specialty ? ` (${doc.specialty})` : '');
+                    doctorSelect.appendChild(option);
+                });
+                doctorSelect.value = prevValue;
+            });
+    }
+    loadDoctors();
 
-        // TODO: Implement actual search API call
-        performConclusionSearch(searchParams);
-    });
+    if (searchConclusionsBtn) {
+        searchConclusionsBtn.addEventListener('click', function() {
+            const params = {
+                patient_id: document.getElementById('patientName').value || '',
+                date_from: document.getElementById('dateFrom').value || '',
+                date_to: document.getElementById('dateTo').value || '',
+                doctor_id: document.getElementById('doctor').value || '', // Теперь точно соответствует doctor_id из БД
+                diagnosis_text: document.getElementById('diagnosis')?.value || '',
+                treatment_plan: document.getElementById('recommendations')?.value || ''
+            };
 
-    function performConclusionSearch(params) {
-        // Placeholder for server-side search
-        console.log('Searching conclusions with params:', params);
+            // Убираем пустые значения
+            Object.keys(params).forEach(key => 
+                (!params[key] || params[key] === '') && delete params[key]
+            );
 
-        // In a real application, this would make an AJAX call
-        // and update the table with results
+            console.log('Search params:', params); // Для отладки
+            loadConclusionsPOST(params);
+        });
     }
 
-    clearSearchBtn.addEventListener('click', function() {
-        // Reset search form
-        document.getElementById('patientName').value = '';
-        document.getElementById('dateFrom').value = '';
-        document.getElementById('dateTo').value = '';
-        document.getElementById('doctor').value = '';
-    });
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', function() {
+            document.getElementById('patientName').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            document.getElementById('doctor').value = '';
+            if (document.getElementById('diagnosis')) document.getElementById('diagnosis').value = '';
+            if (document.getElementById('recommendations')) document.getElementById('recommendations').value = '';
+            loadConclusionsPOST({});
+        });
+    }
 
     // Table Action Handlers
     function setupTableActions() {
@@ -178,154 +229,189 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Refreshing conclusions list');
     }
 
+    // Загрузка и отображение заключений из БД
+    function loadConclusions(params = {}) {
+        // Формируем query string из params
+        const query = new URLSearchParams(params).toString();
+        fetch(`${SERVER_BASE_URL}/api/conclusions${query ? '?' + query : ''}`)
+            .then(res => res.json())
+            .then(data => {
+                renderConclusionsTable(data);
+            });
+    }
+
+    function loadConclusionsPOST(params = {}) {
+        fetch(`${SERVER_BASE_URL}/api/conclusions-search`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params)
+        })
+        .then(res => res.json())
+        .then(data => {
+            currentPage = 1;
+            renderConclusionsTable(data, currentPage);
+        });
+    }
+
+    function renderConclusionsTable(conclusions, page = 1) {
+        lastConclusions = conclusions;
+        const tbody = document.querySelector('.conclusions-table tbody');
+        const noResultsBlock = document.getElementById('noResults');
+        const conclusionsTable = document.querySelector('.conclusions-table');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (!conclusions || conclusions.length === 0) {
+            if (noResultsBlock) noResultsBlock.style.display = 'block';
+            if (conclusionsTable) conclusionsTable.style.display = 'none';
+            renderConclusionsPagination([], 1);
+            const resultsCount = document.getElementById('resultsCount');
+            if (resultsCount) resultsCount.textContent = 0;
+            return;
+        } else {
+            if (noResultsBlock) noResultsBlock.style.display = 'none';
+            if (conclusionsTable) conclusionsTable.style.display = 'table';
+        }
+
+        const totalPages = Math.max(1, Math.ceil(conclusions.length / CONCLUSIONS_PER_PAGE));
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+        const startIdx = (page - 1) * CONCLUSIONS_PER_PAGE;
+        const endIdx = startIdx + CONCLUSIONS_PER_PAGE;
+        const pageConclusions = conclusions.slice(startIdx, endIdx);
+
+        pageConclusions.forEach(conc => {
+            let dateTime = conc.date || '';
+            if (conc.time) {
+                dateTime = `${conc.date} ${conc.time}`;
+            }
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${dateTime}</td>
+                <td>${conc.patient || ''}</td>
+                <td>${conc.doctor || ''}</td>
+                <td>${conc.diagnosis_text || ''}</td>
+                <!-- <td>${conc.status || ''}</td> -->
+                <td>
+                  <button class="table-btn view-btn" data-id="${conc.diagnosis_id}">Просмотр</button>
+                  <button class="table-btn edit-btn" data-id="${conc.diagnosis_id}">Изменить</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        renderConclusionsPagination(conclusions, page);
+        const resultsCount = document.getElementById('resultsCount');
+        if (resultsCount) resultsCount.textContent = conclusions.length;
+    }
+
+    function getConclusionsTotalPages(conclusions) {
+        return Math.max(1, Math.ceil(conclusions.length / CONCLUSIONS_PER_PAGE));
+    }
+
+    function renderConclusionsPagination(conclusions, page) {
+        const pagination = document.querySelector('.pagination');
+        if (!pagination) return;
+        const totalPages = getConclusionsTotalPages(conclusions);
+
+        pagination.innerHTML = '';
+
+        // Prev button
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'pagination-btn';
+        prevBtn.innerHTML = '&lt;';
+        prevBtn.disabled = page === 1;
+        prevBtn.onclick = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderConclusionsTable(lastConclusions, currentPage);
+            }
+        };
+        pagination.appendChild(prevBtn);
+
+        // Page buttons
+        if (totalPages <= 5) {
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'pagination-btn' + (i === page ? ' active' : '');
+                btn.textContent = i;
+                btn.onclick = () => {
+                    currentPage = i;
+                    renderConclusionsTable(lastConclusions, currentPage);
+                };
+                pagination.appendChild(btn);
+            }
+        } else {
+            let pagesToShow = [];
+            if (page <= 3) {
+                pagesToShow = [1,2,3,4,'...',totalPages];
+            } else if (page >= totalPages - 2) {
+                pagesToShow = [1,'...',totalPages-3,totalPages-2,totalPages-1,totalPages];
+            } else {
+                pagesToShow = [1,'...',page-1,page,page+1,'...',totalPages];
+            }
+            pagesToShow.forEach(p => {
+                if (p === '...') {
+                    const btn = document.createElement('button');
+                    btn.className = 'pagination-btn';
+                    btn.textContent = '...';
+                    btn.disabled = true;
+                    pagination.appendChild(btn);
+                } else {
+                    const btn = document.createElement('button');
+                    btn.className = 'pagination-btn' + (p === page ? ' active' : '');
+                    btn.textContent = p;
+                    btn.onclick = () => {
+                        currentPage = p;
+                        renderConclusionsTable(lastConclusions, currentPage);
+                    };
+                    pagination.appendChild(btn);
+                }
+            });
+        }
+
+        // Next button
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'pagination-btn';
+        nextBtn.innerHTML = '&gt;';
+        nextBtn.disabled = page === totalPages;
+        nextBtn.onclick = () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderConclusionsTable(lastConclusions, currentPage);
+            }
+        };
+        pagination.appendChild(nextBtn);
+    }
+
+    // При загрузке страницы — показать все заключения
+    loadConclusionsPOST();
+
+    // Поиск по фильтрам через POST
+    document.getElementById('searchConclusionsBtn').addEventListener('click', function() {
+        const params = {
+            patientName: document.getElementById('patientName').value,
+            dateFrom: document.getElementById('dateFrom').value,
+            dateTo: document.getElementById('dateTo').value,
+            doctor: document.getElementById('doctor').value,
+            diagnosis: document.getElementById('diagnosis') ? document.getElementById('diagnosis').value : '',
+            recommendations: document.getElementById('recommendations') ? document.getElementById('recommendations').value : '',
+            status: document.getElementById('status') ? document.getElementById('status').value : ''
+        };
+        loadConclusionsPOST(params);
+    });
+
+    // Очистка фильтров
+    document.getElementById('clearSearchBtn').addEventListener('click', function() {
+        document.getElementById('patientName').value = '';
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value = '';
+        document.getElementById('doctor').value = '';
+        if (document.getElementById('diagnosis')) document.getElementById('diagnosis').value = '';
+        if (document.getElementById('recommendations')) document.getElementById('recommendations').value = '';
+        if (document.getElementById('status')) document.getElementById('status').value = '';
+        loadConclusionsPOST({});
+    });
+
     // Initialize table actions
     setupTableActions();
-});
-
-// Функционал поиска пациентов по ФИО в заключениях
-document.addEventListener('DOMContentLoaded', function() {
-    // Находим нужные элементы DOM
-    const patientNameInput = document.getElementById('patientName');
-    const dateFromInput = document.getElementById('dateFrom');
-    const dateToInput = document.getElementById('dateTo');
-    const doctorSelect = document.getElementById('doctor');
-    const searchBtn = document.getElementById('searchConclusionsBtn');
-    const clearBtn = document.getElementById('clearSearchBtn');
-    const resultsCount = document.getElementById('resultsCount');
-    const noResultsBlock = document.getElementById('noResults');
-    const tableRows = document.querySelectorAll('.conclusions-table tbody tr');
-    const conclusionsTable = document.querySelector('.conclusions-table');
-    
-    // Добавляем обработчик события для кнопки поиска
-    searchBtn.addEventListener('click', function() {
-        performSearch();
-    });
-    
-    // Добавляем обработчик для очистки формы
-    clearBtn.addEventListener('click', function() {
-        clearSearch();
-    });
-    
-    // Поиск при нажатии Enter в поле ФИО
-    patientNameInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            performSearch();
-        }
-    });
-    
-    // Функция выполнения поиска
-    function performSearch() {
-        const patientName = patientNameInput.value.toLowerCase().trim();
-        const dateFrom = dateFromInput.value;
-        const dateTo = dateToInput.value;
-        const doctor = doctorSelect.value;
-        
-        // Счетчик найденных результатов
-        let foundCount = 0;
-        
-        // Проверяем каждую строку в таблице
-        tableRows.forEach(row => {
-            const rowPatientName = row.cells[1].textContent.toLowerCase();
-            const rowDate = row.cells[0].textContent;
-            const rowDoctor = row.cells[2].textContent;
-            
-            // Проверяем соответствие всем критериям поиска
-            let matchesName = true;
-            let matchesDate = true;
-            let matchesDoctor = true;
-            
-            // Проверяем ФИО пациента
-            if (patientName && !rowPatientName.includes(patientName)) {
-                matchesName = false;
-            }
-            
-            // Проверяем период дат (в реальном приложении нужен парсинг даты)
-            if (dateFrom || dateTo) {
-                // Преобразуем дату из формата ДД.ММ.ГГГГ в объект Date
-                const dateParts = rowDate.split('.');
-                const rowDateObj = new Date(
-                    parseInt(dateParts[2]),
-                    parseInt(dateParts[1]) - 1,
-                    parseInt(dateParts[0])
-                );
-                
-                if (dateFrom && new Date(dateFrom) > rowDateObj) {
-                    matchesDate = false;
-                }
-                
-                if (dateTo && new Date(dateTo) < rowDateObj) {
-                    matchesDate = false;
-                }
-            }
-            
-            // Проверяем врача
-            if (doctor && !rowDoctor.includes(doctorSelect.options[doctorSelect.selectedIndex].text)) {
-                matchesDoctor = false;
-            }
-            
-            // Показываем или скрываем строку
-            if (matchesName && matchesDate && matchesDoctor) {
-                row.style.display = '';
-                foundCount++;
-                
-                // Подсвечиваем совпадение в ФИО, если был поиск по ФИО
-                if (patientName) {
-                    const originalText = row.cells[1].textContent;
-                    const highlightedText = originalText.replace(
-                        new RegExp(patientName, 'gi'),
-                        match => `<span class="search-highlight">${match}</span>`
-                    );
-                    row.cells[1].innerHTML = highlightedText;
-                }
-            } else {
-                row.style.display = 'none';
-            }
-        });
-        
-        // Обновляем счетчик результатов
-        resultsCount.textContent = foundCount;
-        
-        // Показываем или скрываем блок "нет результатов"
-        if (foundCount === 0) {
-            noResultsBlock.style.display = 'block';
-            conclusionsTable.style.display = 'none';
-        } else {
-            noResultsBlock.style.display = 'none';
-            conclusionsTable.style.display = 'table';
-        }
-    }
-    
-    // Функция очистки поиска
-    function clearSearch() {
-        patientNameInput.value = '';
-        dateFromInput.value = '';
-        dateToInput.value = '';
-        doctorSelect.value = '';
-        
-        // Показываем все строки
-        tableRows.forEach(row => {
-            row.style.display = '';
-            // Возвращаем оригинальный текст без подсветки
-            const cell = row.cells[1];
-            cell.innerHTML = cell.textContent;
-        });
-        
-        // Обновляем счетчик результатов
-        resultsCount.textContent = tableRows.length;
-        
-        // Скрываем блок "нет результатов"
-        noResultsBlock.style.display = 'none';
-        conclusionsTable.style.display = 'table';
-    }
-    
-    // Добавляем стили для подсветки найденного текста
-    const style = document.createElement('style');
-    style.textContent = `
-        .search-highlight {
-            background-color: #ffeb3b;
-            padding: 0 2px;
-            border-radius: 2px;
-        }
-    `;
-    document.head.appendChild(style);
 });

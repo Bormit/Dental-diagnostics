@@ -11,8 +11,9 @@ from datetime import datetime
 from flask import Blueprint, jsonify, request, send_file
 from flask_jwt_extended import jwt_required, get_jwt
 from werkzeug.utils import secure_filename
+from sqlalchemy import desc
 
-from ..models.models import User, Patient, Appointment, Xray, InterpretationResult, Analysis, NeuralModel, Pathology
+from ..models.models import User, Patient, Appointment, Xray, InterpretationResult, Analysis, NeuralModel, Pathology, Diagnosis
 from ..db import db
 from ..config import UPLOAD_FOLDER, RESULTS_FOLDER, MODEL_PATH, BASE_URL, ALLOWED_EXTENSIONS, PATHOLOGY_CLASSES
 from ..utils.analysis import load_model, process_results, preprocess_image, create_visualization
@@ -338,4 +339,84 @@ def get_analysis_result(analysis_id):
         })
     except Exception as e:
         print(f"Ошибка при получении результата анализа: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+# Добавляем маршрут для поиска анализов
+@bp.route('/api/analysis-results-search', methods=['POST', 'OPTIONS'])
+def search_analyses():
+    if request.method == 'OPTIONS':
+        return '', 204
+
+    try:
+        data = request.get_json()
+        print("Received data:", data)
+
+        analyses = db.session.query(Analysis).order_by(desc(Analysis.analysis_date)).all()
+        results = []
+        for analysis in analyses:
+            xray = Xray.query.filter_by(xray_id=analysis.xray_id).first()
+            patient_name = "-"
+            doctor_name = "-"
+            patient = None
+            doctor = None
+            if xray:
+                patient = Patient.query.filter_by(patient_id=xray.patient_id).first()
+                doctor = User.query.filter_by(user_id=xray.uploaded_by).first()
+                if patient:
+                    patient_name = patient.full_name
+                if doctor:
+                    doctor_name = doctor.full_name
+
+            # Фильтрация по ФИО пациента (ищем по patientName, как на фронте)
+            if data.get('patientName'):
+                if not patient or data['patientName'].lower() not in patient_name.lower():
+                    continue
+
+            # Фильтрация по врачу (ищем по doctor, это user_id или "admin")
+            if data.get('doctor'):
+                doctor_id = data['doctor']
+                if doctor_id == 'admin':
+                    if not doctor or not doctor.role or doctor.role.lower() != 'admin':
+                        continue
+                else:
+                    if not doctor or str(doctor.user_id) != str(doctor_id):
+                        continue
+
+            # Фильтрация по дате анализа (dateFrom/dateTo в формате YYYY-MM-DD)
+            if data.get('dateFrom'):
+                if not analysis.analysis_date or str(analysis.analysis_date.date()) < data['dateFrom']:
+                    continue
+            if data.get('dateTo'):
+                if not analysis.analysis_date or str(analysis.analysis_date.date()) > data['dateTo']:
+                    continue
+
+            interps = InterpretationResult.query.filter_by(analysis_id=analysis.analysis_id).all()
+            pathology_names = []
+            for interp in interps:
+                pathology = Pathology.query.filter_by(pathology_id=interp.pathology_id).first()
+                if pathology and pathology.name not in pathology_names:
+                    pathology_names.append(pathology.name)
+
+            ai_result_url = None
+            vis_path = os.path.join(RESULTS_FOLDER, f"{analysis.analysis_id}_visualization.png")
+            if os.path.exists(vis_path):
+                ai_result_url = f"{BASE_URL}/api/visualizations/{analysis.analysis_id}"
+
+            results.append({
+                'date': analysis.analysis_date.isoformat() if analysis.analysis_date else None,
+                'patient_name': patient_name,
+                'doctor_name': doctor_name,
+                'pathologies': ', '.join(pathology_names) if pathology_names else '-',
+                'ai_result_url': ai_result_url,
+                'execution_time': analysis.execution_time,
+                'status': analysis.status
+            })
+
+        print(f"Query results: {len(results)}")
+        return jsonify(results)
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500

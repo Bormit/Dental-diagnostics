@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DentalAI - Заключения</title>
+  <title>DentalAI - История анализов</title>
   <link rel="stylesheet" href="../../styles/main.css">
-  <link rel="stylesheet" href="conclusions.css">
+  <link rel="stylesheet" href="analysis-list.css">
 </head>
 <body>
 <div class="header">
   <div class="header-logo">DentalAI</div>
-  <div class="header-title">ЗАКЛЮЧЕНИЯ</div>
+  <div class="header-title">ИСТОРИЯ АНАЛИЗОВ</div>
   <div class="header-user" onclick="window.location.href='../acc/acc.html'" style="cursor: pointer;">
     <div class="user-avatar">ИИ</div>
     <div id="userFullName">Иванов И.И.</div>
@@ -37,14 +37,14 @@
         <a href="../new-patient/new-patient.html">Новый пациент</a>
       </li>
       <li class="sidebar-menu-item section">ДОКУМЕНТЫ</li>
+      <li class="sidebar-menu-item">
+        <a href="../conclusions/conclusions.html">Заключения</a>
+      </li>
       <li class="sidebar-menu-item active">
-        <a href="conclusions.html">Заключения</a>
+        <a href="analysis-list.html">История анализов</a>
       </li>
       <li class="sidebar-menu-item">
-        <a href="../analysis-list/analysis-list.html">История анализов</a>
-      </li>
-      <li class="sidebar-menu-item">
-        <a href="../reports/reports.html">Отчеты</a>
+        <a href="reports.html">Отчеты</a>
       </li>
       <li class="sidebar-menu-item section">СИСТЕМА</li>
       <li class="sidebar-menu-item">
@@ -61,10 +61,10 @@
 
   <div class="main-content">
     <div class="page-header">
-      <h1 class="page-title">Заключения</h1>
+      <h1 class="page-title">История анализов</h1>
       <div>
         <button class="action-secondary">Печать</button>
-        <button id="createConclusionBtn" class="action-primary">Новое заключение</button>
+        <button class="action-primary" onclick="window.location.href='../analysis/analysis.html'">Новый анализ</button>
       </div>
     </div>
 
@@ -86,78 +86,43 @@
             <label class="search-label">Врач</label>
             <select class="search-input" id="doctor">
               <option value="">Все врачи</option>
-              <!-- остальные опции будут добавлены динамически через JS -->
             </select>
-          </div>
-          <div class="search-group">
-            <label class="search-label">Диагноз</label>
-            <input type="text" class="search-input" id="diagnosis" placeholder="Введите диагноз">
-          </div>
-          <div class="search-group">
-            <label class="search-label">Рекомендации</label>
-            <input type="text" class="search-input" id="recommendations" placeholder="Рекомендации">
           </div>
         </div>
       </div>
       <div class="search-actions">
         <button class="search-clear" id="clearSearchBtn">Очистить</button>
-        <button class="search-btn" id="searchConclusionsBtn">Найти</button>
+        <button class="search-btn" id="searchBtn">Найти</button>
       </div>
     </div>
 
-    <div class="results-info">
-      <div class="results-count">Найдено: <span id="resultsCount">0</span> заключений</div>
-      <div class="results-actions">
-        <button class="action-button" id="exportResultsBtn">Экспорт</button>
-        <button class="action-button" id="printResultsBtn">Печать</button>
-      </div>
-    </div>
-
-    <table class="conclusions-table">
+    <table class="analysis-table">
       <thead>
       <tr>
         <th>Дата</th>
         <th>Пациент</th>
         <th>Врач</th>
-        <th>Диагноз</th>
-        <th>Действия</th>
+        <th>Патологии</th>
+        <th>Результат ИИ</th>
+        <th>Статус</th>
       </tr>
       </thead>
-      <tbody>
-      <tr>
-        <td>${dateTime}</td>
-        <td>${conc.patient || ''}</td>
-        <td>${conc.doctor || ''}</td>
-        <td>${conc.diagnosis_text || ''}</td>
-        <td>
-          <button class="table-btn view-btn" data-id="${conc.diagnosis_id}">Просмотр</button>
-          <button class="table-btn edit-btn" data-id="${conc.diagnosis_id}">Изменить</button>
-        </td>
-      </tr>
+      <tbody id="analysisTableBody">
+      <!-- Данные будут добавляться динамически -->
       </tbody>
     </table>
 
-    <div class="pagination">
-      <button class="pagination-btn" disabled>&lt;</button>
-      <button class="pagination-btn active">1</button>
-      <button class="pagination-btn">2</button>
-      <button class="pagination-btn">3</button>
-      <button class="pagination-btn">...</button>
-      <button class="pagination-btn">8</button>
-      <button class="pagination-btn">&gt;</button>
-    </div>
-
     <div class="no-results" id="noResults" style="display: none;">
-      <div class="no-results-icon">📄</div>
-      <div class="no-results-message">По вашему запросу не найдено заключений</div>
+      <div class="no-results-icon">🔍</div>
+      <div class="no-results-message">По вашему запросу не найдено анализов</div>
       <div class="no-results-suggestion">
-        Попробуйте изменить параметры поиска или <a href="../analysis/analysis.html">создать новое заключение</a>
+        Попробуйте изменить параметры поиска или <a href="../analysis/analysis.html">выполнить новый анализ</a>
       </div>
     </div>
   </div>
 </div>
 
-<script src="conclusions.js"></script>
+<script src="analysis-list.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     var fullName = localStorage.getItem('user_fullname');

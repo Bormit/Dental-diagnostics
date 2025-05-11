@@ -9,6 +9,62 @@ document.addEventListener('DOMContentLoaded', function() {
     const patientHistoryPanel = document.getElementById('patientHistoryPanel');
     const noHistoryPanel = document.getElementById('noHistoryPanel');
 
+    // --- Автозаполнение пациента по patient_id из URL ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientIdFromUrl = urlParams.get('patient_id');
+    if (patientIdFromUrl) {
+        fetch(`${SERVER_BASE_URL}/api/patient-search`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cardNumber: patientIdFromUrl })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.patient) {
+                selectedPatient = data.patient;
+                document.getElementById('patientName').value = data.patient.name || '';
+                document.getElementById('birthDate').value = data.patient.birthDate || '';
+                document.getElementById('gender').value = data.patient.gender || 'male';
+                document.getElementById('cardNumber').value = data.patient.cardNumber || '';
+
+                // --- Добавлено: обновление patientInfoPanel ---
+                const patientNameEl = document.querySelector('.patient-name');
+                if (patientNameEl) patientNameEl.textContent = data.patient.name || '';
+
+                const detailValues = document.querySelectorAll('.patient-detail-value');
+                if (detailValues.length >= 3) {
+                    // Преобразуем дату в российский формат
+                    let dateStr = data.patient.birthDate;
+                    let formattedDate = '';
+                    if (dateStr && dateStr.includes('-')) {
+                        // YYYY-MM-DD -> DD.MM.YYYY
+                        const parts = dateStr.split('-');
+                        if (parts.length === 3) {
+                            formattedDate = `${parts[2].padStart(2, '0')}.${parts[1].padStart(2, '0')}.${parts[0]}`;
+                        }
+                    }
+                    detailValues[0].textContent = formattedDate || '';
+                    detailValues[1].textContent = data.patient.gender === 'male' ? 'Мужской' : (data.patient.gender === 'female' ? 'Женский' : '');
+                    detailValues[2].textContent = data.patient.cardNumber || '';
+                }
+
+                if (patientInfoPanel) patientInfoPanel.style.display = 'block';
+                if (noPatientWarning) noPatientWarning.style.display = 'none';
+
+                loadPatientHistory(data.patient.id);
+
+                if (patientHistoryPanel) patientHistoryPanel.style.display = 'block';
+                if (noHistoryPanel) noHistoryPanel.style.display = 'none';
+
+                const resultsSection = document.getElementById('analysis-results-section');
+                if (resultsSection) {
+                    resultsSection.style.display = 'none';
+                    resultsSection.innerHTML = '';
+                }
+            }
+        });
+    }
+
     if (clearPatientBtn) {
         clearPatientBtn.addEventListener('click', function() {
             document.getElementById('patientName').value = '';

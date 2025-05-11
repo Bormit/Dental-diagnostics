@@ -6,9 +6,10 @@ from sqlalchemy.orm import joinedload
 # Импорт всех необходимых моделей
 from ..models.models import (
     Patient, Appointment, Diagnosis, Pathology,
-    InterpretationResult, Analysis, Xray, NeuralModel
+    InterpretationResult, Analysis, Xray, NeuralModel, User
 )
 from ..db import db
+from src.backend.api.utils.analysis import get_last_diagnosis
 
 bp = Blueprint('patients', __name__)
 
@@ -200,6 +201,15 @@ def patient_search():
         last_visit = ""
         if last_appointment and last_appointment.appointment_date:
             last_visit = last_appointment.appointment_date.strftime('%d.%m.%Y')
+        # --- diagnoses ---
+        diagnoses = Diagnosis.query.filter_by(patient_id=patient.patient_id).order_by(Diagnosis.diagnosis_id.desc()).all()
+        diagnoses_list = [
+            {
+                'diagnosis_id': d.diagnosis_id,
+                'diagnosis_text': d.diagnosis_text
+            } for d in diagnoses
+        ]
+        last_diag = get_last_diagnosis(diagnoses_list)
         return jsonify({
             'patient': {
                 'id': str(patient.patient_id),
@@ -208,12 +218,14 @@ def patient_search():
                 'gender': patient.gender,
                 'cardNumber': str(patient.patient_id),
                 'phone': patient.phone or "",
-                'lastVisit': last_visit
+                'lastVisit': last_visit,
+                'diagnoses': diagnoses_list,
+                'lastDiagnosis': last_diag['diagnosis_text'] if last_diag else '-'
             }
         })
 
     # Если расширенный поиск (по диагнозу, врачу, периоду)
-    if diagnosis or attending_doctor or (visit_date_from and visit_date_to):
+    if diagnosis or attending_doctor or (visit_date_from or visit_date_to):
         from sqlalchemy import or_, and_
         query = db.session.query(Patient).distinct()
 
@@ -254,7 +266,7 @@ def patient_search():
 
             query = query.filter(Patient.patient_id.in_(patient_ids_diag))
 
-        # --- Поиск по врачу и периоду через appointments ---
+        # --- Поиск по врачу и/или периоду через appointments ---
         if attending_doctor or visit_date_from or visit_date_to:
             query = query.join(Appointment, Patient.patient_id == Appointment.patient_id)
             if attending_doctor:
@@ -287,6 +299,15 @@ def patient_search():
             last_visit = ""
             if last_appointment and last_appointment.appointment_date:
                 last_visit = last_appointment.appointment_date.strftime('%d.%m.%Y')
+            # --- diagnoses ---
+            diagnoses = Diagnosis.query.filter_by(patient_id=p.patient_id).order_by(Diagnosis.diagnosis_id.desc()).all()
+            diagnoses_list = [
+                {
+                    'diagnosis_id': d.diagnosis_id,
+                    'diagnosis_text': d.diagnosis_text
+                } for d in diagnoses
+            ]
+            last_diag = get_last_diagnosis(diagnoses_list)
             result.append({
                 'id': str(p.patient_id),
                 'name': p.full_name,
@@ -294,7 +315,9 @@ def patient_search():
                 'gender': p.gender,
                 'cardNumber': str(p.patient_id),
                 'phone': p.phone or "",
-                'lastVisit': last_visit
+                'lastVisit': last_visit,
+                'diagnoses': diagnoses_list,
+                'lastDiagnosis': last_diag['diagnosis_text'] if last_diag else '-'
             })
         return jsonify({'patients': result})
 
@@ -321,6 +344,15 @@ def patient_search():
         last_visit = ""
         if last_appointment and last_appointment.appointment_date:
             last_visit = last_appointment.appointment_date.strftime('%d.%m.%Y')
+        # --- diagnoses ---
+        diagnoses = Diagnosis.query.filter_by(patient_id=patient.patient_id).order_by(Diagnosis.diagnosis_id.desc()).all()
+        diagnoses_list = [
+            {
+                'diagnosis_id': d.diagnosis_id,
+                'diagnosis_text': d.diagnosis_text
+            } for d in diagnoses
+        ]
+        last_diag = get_last_diagnosis(diagnoses_list)
         return jsonify({
             'patient': {
                 'id': str(patient.patient_id),
@@ -329,10 +361,129 @@ def patient_search():
                 'gender': patient.gender,
                 'cardNumber': str(patient.patient_id),
                 'phone': patient.phone or "",
-                'lastVisit': last_visit
+                'lastVisit': last_visit,
+                'diagnoses': diagnoses_list,
+                'lastDiagnosis': last_diag['diagnosis_text'] if last_diag else '-'
             }
         })
 
     # Если ничего не подошло
     return jsonify({
                        'error': 'Необходимо указать ФИО, дату рождения и пол или номер карты, либо параметры расширенного поиска'}), 400
+
+@bp.route('/api/doctors', methods=['GET'])
+def get_doctors():
+    """
+    Возвращает список докторов для выпадающего списка поиска.
+    """
+    doctors = User.query.filter_by(role='doctor').all()
+    result = []
+    for doc in doctors:
+        result.append({
+            "id": doc.user_id,
+            "full_name": doc.full_name,
+            "specialty": doc.specialty
+        })
+    return jsonify(result)
+
+@bp.route('/api/conclusions', methods=['GET'])
+def get_conclusions():
+    diagnoses = Diagnosis.query.order_by(Diagnosis.diagnosis_id.desc()).all()
+    result = []
+    for d in diagnoses:
+        patient = Patient.query.filter_by(patient_id=d.patient_id).first()
+        doctor = User.query.filter_by(user_id=d.doctor_id).first()
+        # Найти последний Appointment до Diagnosis (или ближайший)
+        appointment = (
+            Appointment.query
+            .filter_by(patient_id=d.patient_id)
+            .filter(Appointment.appointment_date <= getattr(d, 'created_at', datetime.max))
+            .order_by(Appointment.appointment_date.desc())
+            .first()
+        )
+        if appointment and appointment.appointment_date:
+            date_full = appointment.appointment_date.strftime('%d.%m.%Y')
+        elif hasattr(d, 'created_at') and d.created_at:
+            date_full = d.created_at.strftime('%d.%m.%Y')
+        else:
+            date_full = ""
+        result.append({
+            "diagnosis_id": d.diagnosis_id,
+            "date": date_full,
+            "patient": patient.full_name if patient else "",
+            "doctor": doctor.full_name if doctor else "",
+            "diagnosis_text": d.diagnosis_text,
+            "treatment_plan": d.treatment_plan,
+            "status": getattr(d, "status", "Подтверждено")
+        })
+    return jsonify(result)
+
+@bp.route('/api/conclusions-search', methods=['POST'])
+def conclusions_search():
+    data = request.get_json() or request.form
+    patient_name = data.get('patientName', '').strip()
+    date_from = data.get('dateFrom', '').strip()
+    date_to = data.get('dateTo', '').strip()
+    doctor_id = data.get('doctor', '').strip()
+    diagnosis_text = data.get('diagnosis', '').strip()
+    recommendations = data.get('recommendations', '').strip()
+    status = data.get('status', '').strip()
+
+    query = Diagnosis.query
+
+    if doctor_id:
+        query = query.filter(Diagnosis.doctor_id == doctor_id)
+    if date_from:
+        try:
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+            # Фильтруем по дате приема (Appointment)
+            query = query.join(Appointment, Appointment.patient_id == Diagnosis.patient_id)
+            query = query.filter(Appointment.appointment_date >= date_from_obj)
+        except Exception:
+            pass
+    if date_to:
+        try:
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+            query = query.join(Appointment, Appointment.patient_id == Diagnosis.patient_id)
+            query = query.filter(Appointment.appointment_date <= date_to_obj)
+        except Exception:
+            pass
+    if patient_name:
+        query = query.join(Patient, Diagnosis.patient_id == Patient.patient_id)
+        query = query.filter(Patient.full_name.ilike(f"%{patient_name}%"))
+    if diagnosis_text:
+        query = query.filter(Diagnosis.diagnosis_text.ilike(f"%{diagnosis_text}%"))
+    if recommendations:
+        query = query.filter(Diagnosis.treatment_plan.ilike(f"%{recommendations}%"))
+    if hasattr(Diagnosis, "status") and status:
+        query = query.filter(Diagnosis.status == status)
+
+    diagnoses = query.order_by(Diagnosis.diagnosis_id.desc()).all()
+    result = []
+    for d in diagnoses:
+        patient = Patient.query.filter_by(patient_id=d.patient_id).first()
+        doctor = User.query.filter_by(user_id=d.doctor_id).first()
+        # Найти последний Appointment до Diagnosis (или ближайший)
+        appointment = (
+            Appointment.query
+            .filter_by(patient_id=d.patient_id)
+            .filter(Appointment.appointment_date <= getattr(d, 'created_at', datetime.max))
+            .order_by(Appointment.appointment_date.desc())
+            .first()
+        )
+        if appointment and appointment.appointment_date:
+            date_full = appointment.appointment_date.strftime('%d.%m.%Y')
+        elif hasattr(d, 'created_at') and d.created_at:
+            date_full = d.created_at.strftime('%d.%m.%Y')
+        else:
+            date_full = ""
+        result.append({
+            "diagnosis_id": d.diagnosis_id,
+            "date": date_full,
+            "patient": patient.full_name if patient else "",
+            "doctor": doctor.full_name if doctor else "",
+            "diagnosis_text": d.diagnosis_text,
+            "treatment_plan": d.treatment_plan,
+            "status": getattr(d, "status", "Подтверждено")
+        })
+    return jsonify(result)

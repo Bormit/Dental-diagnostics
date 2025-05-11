@@ -384,11 +384,9 @@ function updatePatientsTable(patients, page = 1) {
 
         let lastDiagnosis = '-';
         if (p.diagnoses && Array.isArray(p.diagnoses) && p.diagnoses.length > 0) {
-            console.log('[DEBUG] Найдены диагнозы:', p.diagnoses.length);
-            lastDiagnosis = p.diagnoses[0].diagnosis_text || '-';
-            console.log('[DEBUG] Последний диагноз:', lastDiagnosis);
-        } else {
-            console.log('[DEBUG] Диагнозы не найдены');
+            // Сортируем по diagnosis_id по убыванию и берем первый (последний диагноз)
+            const sortedDiagnoses = [...p.diagnoses].sort((a, b) => (b.diagnosis_id || 0) - (a.diagnosis_id || 0));
+            lastDiagnosis = sortedDiagnoses[0].diagnosis_text || '-';
         }
         
         let lastVisit = p.lastVisit || '-';
@@ -397,7 +395,7 @@ function updatePatientsTable(patients, page = 1) {
             <td class="patient-name">${p.name || p.fullName || ''}</td>
             <td>${formatDate(p.birthDate || p.birth_date)}</td>
             <td>${p.cardNumber || p.card_number || p.id || ''}</td>
-            <td>${p.policyNumber || p.policy_number || ''}</td>
+            <td>-</td>
             <td>${p.phone || ''}</td>
             <td>${lastDiagnosis}</td>
             <td>${lastVisit}</td>
@@ -465,6 +463,27 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchPatientsBtn && patientsTable && noResults && resultsCount) {
         searchPatientsBtn.addEventListener('click', handlePatientSearch);
     }
+
+    // Динамическая загрузка докторов в select
+    fetch(`${SERVER_BASE_URL}/api/doctors`)
+        .then(res => res.json())
+        .then(doctors => {
+            const select = document.getElementById('attendingDoctor');
+            if (select) {
+                // Сохраняем выбранное значение, если было
+                const prevValue = select.value;
+                select.innerHTML = '<option value="">Все врачи</option>';
+                doctors.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = doc.full_name + (doc.specialty ? ` (${doc.specialty})` : '');
+                    select.appendChild(option);
+                });
+                // Восстанавливаем выбранное значение, если было
+                if (prevValue) select.value = prevValue;
+            }
+        })
+        .catch(() => { /* ignore errors */ });
 
     // Получить всех пациентов из IndexedDB (store: 'patients')
     function getAllPatientsFromDB() {
