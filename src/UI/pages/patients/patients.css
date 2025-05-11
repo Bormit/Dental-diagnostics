@@ -191,12 +191,124 @@
     justify-content: center;
 }
 
+/* Add these styles to patients.css */
+
+/* Enhanced Modal Styles */
 .modal-content {
-    background-color: var(--white);
-    width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-tabs {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 15px;
+    overflow-x: auto;
+}
+
+.tab-button {
+    padding: 8px 15px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.tab-button.active {
+    border-bottom: 3px solid var(--primary-color);
+    font-weight: bold;
+}
+
+.tab-content {
+    display: none;
+    padding: 10px 0;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.detail-section {
+    margin-bottom: 20px;
+}
+
+.detail-header {
+    font-weight: bold;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.detail-row {
+    margin-bottom: 8px;
+}
+
+.detail-label {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.history-item {
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+}
+
+.history-date {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.history-doctor {
+    font-style: italic;
+    color: #666;
+}
+
+.history-empty {
+    font-style: italic;
+    color: #999;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Table styles for the modal */
+.modal-content table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.modal-content table th, .modal-content table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.modal-content table th {
+    background-color: #f5f5f5;
+    text-align: left;
+}
+
+.modal-content table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+/* Дополнительные исправления для CSS */
+
+.modal-content {
+    background-color: #fff;
+    width: 800px;
     max-width: 90%;
     padding: 20px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    position: relative;
 }
 
 .modal-header {
@@ -218,4 +330,123 @@
     border: none;
     font-size: 20px;
     cursor: pointer;
+    color: #333;
+}
+
+.modal-body {
+    padding: 15px 0;
+}
+
+.modal-tabs {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 15px;
+    overflow-x: auto;
+}
+
+.tab-button {
+    padding: 8px 15px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 14px;
+    color: #555;
+    transition: all 0.2s ease;
+}
+
+.tab-button:hover {
+    color: var(--primary-color);
+}
+
+.tab-button.active {
+    border-bottom: 3px solid var(--primary-color);
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+/* Улучшенные стили для информации пациента */
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.detail-row {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.detail-label {
+    font-weight: bold;
+    margin-right: 5px;
+    color: #555;
+}
+
+/* Улучшенные стили для истории */
+.history-item {
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: #f9f9f9;
+    transition: all 0.2s ease;
+}
+
+.history-item:hover {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.history-date {
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.history-doctor {
+    font-style: italic;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.recommendation-text {
+    line-height: 1.5;
+}
+
+/* Стили для таблиц */
+.modal-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.modal-content table th,
+.modal-content table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.modal-content table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+    color: #333;
+}
+
+.modal-content table tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* Адаптивность для маленьких экранов */
+@media (max-width: 768px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-content table {
+        display: block;
+        overflow-x: auto;
+    }
 }

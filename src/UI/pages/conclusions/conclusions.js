@@ -149,9 +149,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 doctors.forEach(doc => {
                     const option = document.createElement('option');
                     option.value = doc.id; // user_id
-                    option.textContent = doc.full_name + (doc.specialty ? ` (${doc.specialty})` : '');
+                    let label = doc.full_name;
+                    if (doc.role && doc.role.toLowerCase() === 'admin') {
+                        label += ' (Администратор)';
+                    } else if (doc.specialty && doc.specialty.trim() !== '') {
+                        label += ` (${doc.specialty})`;
+                    }
+                    option.textContent = label;
                     doctorSelect.appendChild(option);
                 });
+                // Если ни одного admin нет в списке, добавить вручную (fallback)
+                if (![...doctorSelect.options].some(opt => opt.textContent.includes('Администратор'))) {
+                    const adminOption = document.createElement('option');
+                    adminOption.value = 'admin';
+                    adminOption.textContent = 'Администратор';
+                    doctorSelect.appendChild(adminOption);
+                }
                 doctorSelect.value = prevValue;
             });
     }

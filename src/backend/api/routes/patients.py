@@ -1,8 +1,11 @@
+import os
+
 from flask import Blueprint, jsonify, request
 from datetime import date, datetime
 from sqlalchemy import or_, and_, cast
 from sqlalchemy.orm import joinedload
 
+from .. import RESULTS_FOLDER, BASE_URL
 # Импорт всех необходимых моделей
 from ..models.models import (
     Patient, Appointment, Diagnosis, Pathology,
@@ -116,6 +119,36 @@ def patients_handler():
             patients = Patient.query.all()
             result = []
             for p in patients:
+                # Получаем все диагнозы пациента, сортируем по убыванию id
+                diagnoses = Diagnosis.query.filter_by(patient_id=p.patient_id).order_by(Diagnosis.diagnosis_id.desc()).all()
+                last_diagnosis = ""
+                last_visit = ""
+                if diagnoses:
+                    last_diagnosis = diagnoses[0].diagnosis_text or ""
+                    # Пытаемся найти дату диагноза или связанного приема
+                    if hasattr(diagnoses[0], 'created_at') and diagnoses[0].created_at:
+                        last_visit = diagnoses[0].created_at.strftime('%Y-%m-%d')
+                    else:
+                        # Альтернатива: ищем последний appointment
+                        appointment = (
+                            Appointment.query
+                            .filter_by(patient_id=p.patient_id)
+                            .order_by(Appointment.appointment_date.desc())
+                            .first()
+                        )
+                        if appointment and appointment.appointment_date:
+                            last_visit = appointment.appointment_date.strftime('%Y-%m-%d')
+                else:
+                    # Если диагнозов нет, ищем последнее посещение по appointment
+                    appointment = (
+                        Appointment.query
+                        .filter_by(patient_id=p.patient_id)
+                        .order_by(Appointment.appointment_date.desc())
+                        .first()
+                    )
+                    if appointment and appointment.appointment_date:
+                        last_visit = appointment.appointment_date.strftime('%Y-%m-%d')
+
                 result.append({
                     "patient_id": str(p.patient_id),
                     "full_name": p.full_name,
@@ -123,6 +156,15 @@ def patients_handler():
                     "phone": p.phone or "",
                     "email": p.email or "",
                     "gender": p.gender or "",
+                    "diagnoses": [
+                        {
+                            "diagnosis_id": d.diagnosis_id,
+                            "diagnosis_text": d.diagnosis_text,
+                            "date": d.created_at.strftime('%Y-%m-%d') if hasattr(d, 'created_at') and d.created_at else ""
+                        } for d in diagnoses
+                    ],
+                    "last_diagnosis": last_diagnosis,
+                    "last_visit": last_visit
                 })
             return jsonify(result)
         except Exception as e:
@@ -487,3 +529,215 @@ def conclusions_search():
             "status": getattr(d, "status", "Подтверждено")
         })
     return jsonify(result)
+
+
+@bp.route('/api/patient-details/<patient_id>', methods=['GET'])
+def get_patient_details(patient_id):
+    """
+    Получение полной информации о пациенте: основные данные, история диагнозов,
+    история посещений, список врачей и история рекомендаций.
+    """
+    try:
+        # Проверяем, что patient_id передан и корректен
+        if not patient_id:
+            return jsonify({'error': 'ID пациента не предоставлен'}), 400
+
+        try:
+            patient_id = int(patient_id)
+        except ValueError:
+            return jsonify({'error': 'Некорректный ID пациента'}), 400
+
+        # Получаем данные пациента
+        patient = Patient.query.filter_by(patient_id=patient_id).first()
+        if not patient:
+            return jsonify({'error': 'Пациент не найден'}), 404
+
+        # Формируем базовую информацию о пациенте
+        patient_data = {
+            'id': str(patient.patient_id),
+            'full_name': patient.full_name,
+            'birth_date': patient.birth_date.strftime('%Y-%m-%d') if patient.birth_date else None,
+            'gender': patient.gender,
+            'phone': patient.phone,
+            'email': patient.email,
+            'card_number': str(patient.patient_id)
+        }
+
+        # Получаем все диагнозы пациента
+        diagnoses = Diagnosis.query.filter_by(patient_id=patient_id).order_by(Diagnosis.diagnosis_id.desc()).all()
+        diagnoses_data = []
+
+        for diagnosis in diagnoses:
+            # Получаем информацию о враче
+            doctor = User.query.filter_by(user_id=diagnosis.doctor_id).first()
+            doctor_name = doctor.full_name if doctor else "Неизвестно"
+            doctor_specialty = doctor.specialty if doctor else "Неизвестно"
+
+            # Получаем дату анализа (из таблицы analyses)
+            analysis_date = None
+            if hasattr(diagnosis, 'result_id') and diagnosis.result_id:
+                interp_result = InterpretationResult.query.filter_by(result_id=diagnosis.result_id).first()
+                if interp_result and interp_result.analysis_id:
+                    analysis = Analysis.query.filter_by(analysis_id=interp_result.analysis_id).first()
+                    if analysis and analysis.analysis_date:
+                        analysis_date = analysis.analysis_date
+
+            diagnoses_data.append({
+                'diagnosis_id': diagnosis.diagnosis_id,
+                'diagnosis_text': diagnosis.diagnosis_text,
+                'treatment_plan': diagnosis.treatment_plan,
+                'date': analysis_date.strftime('%Y-%m-%d') if analysis_date else None,
+                'doctor_id': diagnosis.doctor_id,
+                'doctor_name': doctor_name,
+                'doctor_specialty': doctor_specialty
+            })
+
+        # Получаем все посещения пациента (приемы)
+        appointments = Appointment.query.filter_by(patient_id=patient_id).order_by(
+            Appointment.appointment_date.desc()).all()
+        appointments_data = []
+
+        for appointment in appointments:
+            # Получаем информацию о враче
+            doctor = User.query.filter_by(user_id=appointment.doctor_id).first()
+            doctor_name = doctor.full_name if doctor else "Неизвестно"
+
+            appointments_data.append({
+                'appointment_id': appointment.appointment_id,
+                'date': appointment.appointment_date.strftime(
+                    '%Y-%m-%d %H:%M') if appointment.appointment_date else None,
+                'type': appointment.appointment_type,
+                'reason': appointment.reason,
+                'doctor_id': appointment.doctor_id,
+                'doctor_name': doctor_name,
+                'status': appointment.status if hasattr(appointment, 'status') else 'завершен'
+            })
+
+        # Получаем все рентген-снимки пациента
+        xrays = Xray.query.filter_by(patient_id=patient_id).all()
+        xray_ids = [xray.xray_id for xray in xrays]
+
+        # Получаем все анализы на основе снимков
+        analyses = []
+        if xray_ids:
+            analyses = Analysis.query.filter(Analysis.xray_id.in_(xray_ids)).order_by(
+                Analysis.analysis_date.desc()).all()
+
+        analyses_data = []
+        for analysis in analyses:
+            # Получаем информацию о враче, который загрузил снимок
+            xray = Xray.query.filter_by(xray_id=analysis.xray_id).first()
+            doctor_id = xray.uploaded_by if xray else None
+            doctor = User.query.filter_by(user_id=doctor_id).first() if doctor_id else None
+            doctor_name = doctor.full_name if doctor else "Неизвестно"
+
+            # Получаем результаты анализа
+            interps = InterpretationResult.query.filter_by(analysis_id=analysis.analysis_id).all()
+            pathologies = []
+            unique_pathology_names = set()  # Множество для хранения уникальных названий
+
+            for interp in interps:
+                pathology = Pathology.query.filter_by(pathology_id=interp.pathology_id).first()
+                if pathology and pathology.name not in unique_pathology_names:
+                    unique_pathology_names.add(pathology.name)
+                    pathologies.append({
+                        'name': pathology.name,
+                        'probability': interp.probability
+                    })
+
+            # Визуализация если есть
+            visualization_url = None
+            vis_path = os.path.join(RESULTS_FOLDER, f"{analysis.analysis_id}_visualization.png")
+            if os.path.exists(vis_path):
+                visualization_url = f"{BASE_URL}/api/visualizations/{analysis.analysis_id}"
+
+            analyses_data.append({
+                'analysis_id': analysis.analysis_id,
+                'date': analysis.analysis_date.strftime('%Y-%m-%d %H:%M') if analysis.analysis_date else None,
+                'doctor_id': doctor_id,
+                'doctor_name': doctor_name,
+                'pathologies': pathologies,
+                'visualization_url': visualization_url,
+                'execution_time': analysis.execution_time,
+                'status': analysis.status
+            })
+
+        # Получаем список уникальных врачей, лечивших пациента
+        # Сначала из диагнозов
+        doctor_ids = set()
+        doctors_data = []
+
+        # 1. Получаем врачей из приемов ДАННОГО пациента
+        appointments_for_patient = Appointment.query.filter_by(patient_id=patient_id).all()
+        for appointment in appointments_for_patient:
+            if appointment.doctor_id and appointment.doctor_id not in doctor_ids:
+                doctor_ids.add(appointment.doctor_id)
+
+        # 2. Добавляем врачей из снимков ДАННОГО пациента
+        xrays_for_patient = Xray.query.filter_by(patient_id=patient_id).all()
+        for xray in xrays_for_patient:
+            if xray.uploaded_by and xray.uploaded_by not in doctor_ids:
+                doctor_ids.add(xray.uploaded_by)
+
+        # 3. Добавляем врачей из диагнозов ДАННОГО пациента
+        diagnoses_for_patient = Diagnosis.query.filter_by(patient_id=patient_id).all()
+        for diagnosis in diagnoses_for_patient:
+            if diagnosis.doctor_id and diagnosis.doctor_id not in doctor_ids:
+                doctor_ids.add(diagnosis.doctor_id)
+
+        # Получаем информацию о каждом враче
+        for doctor_id in doctor_ids:
+            doctor = User.query.filter_by(user_id=doctor_id).first()
+            if doctor:
+                # Находим последний прием пациента у этого врача
+                last_appointment = Appointment.query.filter_by(
+                    patient_id=patient_id,
+                    doctor_id=doctor_id
+                ).order_by(Appointment.appointment_date.desc()).first()
+
+                last_visit = None
+                if last_appointment and last_appointment.appointment_date:
+                    last_visit = last_appointment.appointment_date.strftime('%Y-%m-%d')
+
+                doctors_data.append({
+                    'doctor_id': doctor.user_id,
+                    'name': doctor.full_name,
+                    'specialty': doctor.specialty,
+                    'last_visit': last_visit
+                })
+
+        # Собираем все рекомендации
+        recommendations_data = []
+
+        # Из диагнозов
+        for diagnosis in diagnoses:
+            if diagnosis.treatment_plan:
+                doctor = User.query.filter_by(user_id=diagnosis.doctor_id).first()
+                doctor_name = doctor.full_name if doctor else "Неизвестно"
+
+                recommendations_data.append({
+                    'date': diagnosis.created_at.strftime('%Y-%m-%d') if hasattr(diagnosis,
+                                                                                 'created_at') and diagnosis.created_at else None,
+                    'doctor_name': doctor_name,
+                    'text': diagnosis.treatment_plan,
+                    'source': 'diagnosis',
+                    'source_id': diagnosis.diagnosis_id
+                })
+
+        # Собираем все данные в один объект
+        result = {
+            'patient': patient_data,
+            'diagnoses': diagnoses_data,
+            'appointments': appointments_data,
+            'analyses': analyses_data,
+            'doctors': doctors_data,
+            'recommendations': recommendations_data
+        }
+
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"Ошибка при получении данных пациента: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({'error': str(e)}), 500
