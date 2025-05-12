@@ -120,20 +120,11 @@
         <th>Пациент</th>
         <th>Врач</th>
         <th>Диагноз</th>
-        <th>Действия</th>
+        <th>Рекомендации</th>
       </tr>
       </thead>
-      <tbody>
-      <tr>
-        <td>${dateTime}</td>
-        <td>${conc.patient || ''}</td>
-        <td>${conc.doctor || ''}</td>
-        <td>${conc.diagnosis_text || ''}</td>
-        <td>
-          <button class="table-btn view-btn" data-id="${conc.diagnosis_id}">Просмотр</button>
-          <button class="table-btn edit-btn" data-id="${conc.diagnosis_id}">Изменить</button>
-        </td>
-      </tr>
+      <tbody id="conclusionsTableBody">
+      <!-- Данные будут подставляться через JS -->
       </tbody>
     </table>
 

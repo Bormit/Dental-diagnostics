@@ -9,6 +9,53 @@ document.addEventListener('DOMContentLoaded', function() {
     const patientHistoryPanel = document.getElementById('patientHistoryPanel');
     const noHistoryPanel = document.getElementById('noHistoryPanel');
 
+    // --- Автозаполнение из localStorage (если переход с карточки пациента) ---
+    const lsName = localStorage.getItem('analysis_patient_name');
+    const lsCard = localStorage.getItem('analysis_patient_card');
+    const lsDob = localStorage.getItem('analysis_patient_dob');
+    const lsGender = localStorage.getItem('analysis_patient_gender');
+    if (lsName || lsCard || lsDob || lsGender) {
+        if (lsName) document.getElementById('patientName').value = lsName;
+        if (lsCard) document.getElementById('cardNumber').value = lsCard;
+        if (lsDob) {
+            // Преобразуем дату в формат yyyy-mm-dd для input[type=date]
+            let dob = lsDob;
+            if (/^\d{2}\.\d{2}\.\d{4}$/.test(dob)) {
+                // DD.MM.YYYY -> YYYY-MM-DD
+                const [d, m, y] = dob.split('.');
+                document.getElementById('birthDate').value = `${y}-${m}-${d}`;
+            } else {
+                document.getElementById('birthDate').value = dob;
+            }
+        }
+        // Устанавливаем пол, если был передан
+        if (lsGender && (lsGender === 'male' || lsGender === 'female')) {
+            document.getElementById('gender').value = lsGender;
+        } else {
+            document.getElementById('gender').value = 'male';
+        }
+
+        // Сбросим значения в localStorage, чтобы не мешали при следующих переходах
+        localStorage.removeItem('analysis_patient_name');
+        localStorage.removeItem('analysis_patient_card');
+        localStorage.removeItem('analysis_patient_dob');
+        localStorage.removeItem('analysis_patient_gender');
+
+        // --- Автоматически инициируем выбор пациента ---
+        // Если есть ФИО, дата рождения и пол, инициируем поиск
+        const patientName = document.getElementById('patientName').value.trim();
+        const birthDate = document.getElementById('birthDate').value;
+        const gender = document.getElementById('gender').value;
+        if (patientName && birthDate && gender) {
+            // Триггерим клик по кнопке поиска пациента
+            if (typeof document.getElementById('searchPatientBtn').click === 'function') {
+                setTimeout(() => {
+                    document.getElementById('searchPatientBtn').click();
+                }, 100);
+            }
+        }
+    }
+
     // --- Автозаполнение пациента по patient_id из URL ---
     const urlParams = new URLSearchParams(window.location.search);
     const patientIdFromUrl = urlParams.get('patient_id');

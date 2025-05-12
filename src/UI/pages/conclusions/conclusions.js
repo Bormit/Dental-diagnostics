@@ -300,16 +300,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${dateTime}</td>
-                <td>${conc.patient || ''}</td>
-                <td>${conc.doctor || ''}</td>
-                <td>${conc.diagnosis_text || ''}</td>
-                <!-- <td>${conc.status || ''}</td> -->
-                <td>
-                  <button class="table-btn view-btn" data-id="${conc.diagnosis_id}">Просмотр</button>
-                  <button class="table-btn edit-btn" data-id="${conc.diagnosis_id}">Изменить</button>
-                </td>
-            `;
+            <td>${dateTime}</td>
+            <td>${conc.patient || ''}</td>
+            <td>${conc.doctor || ''}</td>
+            <td>${conc.diagnosis_text || ''}</td>
+            <td>${conc.treatment_plan || ''}</td>
+        `;
             tbody.appendChild(tr);
         });
         renderConclusionsPagination(conclusions, page);

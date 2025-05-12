@@ -821,27 +821,46 @@ function attachActionHandlers() {
     document.querySelectorAll('.action-button.diagnose').forEach(button => {
         button.onclick = function() {
             const patientName = this.closest('tr').querySelector('.patient-name').textContent;
-            alert(`Переход к диагностике пациента: ${patientName}`);
-        };
-    });
-}
-
-function attachActionHandlers() {
-    document.querySelectorAll('.action-button.view').forEach(button => {
-        button.onclick = function() {
-            const patientName = this.closest('tr').querySelector('.patient-name').textContent;
             const patient = lastRenderedPatients.find(p => p.name === patientName);
             if (patient) {
-                showPatientDetailsModal(patient);
+                // Сохраняем данные пациента в localStorage для анализа снимков
+                localStorage.setItem('analysis_patient_name', patient.name || '');
+                localStorage.setItem('analysis_patient_card', patient.card || '');
+                localStorage.setItem('analysis_patient_dob', patient.dob || '');
+
+                // Определяем пол для передачи (ищем по полю patient.gender или по ФИО)
+                let gender = 'male';
+                if (patient.gender) {
+                    const g = patient.gender.toLowerCase();
+                    if (g.startsWith('ж') || g === 'female' || g === 'женский') gender = 'female';
+                    else if (g.startsWith('м') || g === 'male' || g === 'мужской') gender = 'male';
+                } else if (patient.name) {
+                    // Пробуем по ФИО: ищем второе слово (имя) и третье (отчество)
+                    const parts = patient.name.trim().split(' ');
+                    // Если есть отчество и оно заканчивается на "вна" или "ична" - это женский пол
+                    if (parts.length >= 3) {
+                        const otch = parts[2].toLowerCase();
+                        if (otch.endsWith('вна') || otch.endsWith('ична')) {
+                            gender = 'female';
+                        }
+                    }
+                    // Если не удалось по отчеству, пробуем по имени
+                    if (gender === 'male' && parts.length >= 2) {
+                        const firstName = parts[1].toLowerCase();
+                        // Женские имена часто заканчиваются на "а" или "я", но не всегда
+                        if (
+                            (firstName.endsWith('а') || firstName.endsWith('я')) &&
+                            !/ча$|ша$|жа$|га$|ка$|ха$/.test(firstName)
+                        ) {
+                            gender = 'female';
+                        }
+                    }
+                }
+                localStorage.setItem('analysis_patient_gender', gender);
+                window.location.href = '../analysis/analysis.html';
             } else {
-                alert(`Просмотр карточки пациента: ${patientName}`);
+                alert(`Переход к диагностике пациента: ${patientName}`);
             }
-        };
-    });
-    document.querySelectorAll('.action-button.diagnose').forEach(button => {
-        button.onclick = function() {
-            const patientName = this.closest('tr').querySelector('.patient-name').textContent;
-            alert(`Переход к диагностике пациента: ${patientName}`);
         };
     });
 }
