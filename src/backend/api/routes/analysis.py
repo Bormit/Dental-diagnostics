@@ -8,7 +8,7 @@ import cv2
 import io
 import tensorflow as tf
 from datetime import datetime
-from flask import Blueprint, jsonify, request, send_file
+from flask import Blueprint, jsonify, request, send_file, current_app
 from flask_jwt_extended import jwt_required, get_jwt
 from werkzeug.utils import secure_filename
 from sqlalchemy import desc
@@ -420,3 +420,20 @@ def search_analyses():
         import traceback
         print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
+
+@bp.route('/api/admin-stats', methods=['GET'])
+def admin_stats():
+    try:
+        users_count = db.session.query(User).count()
+        patients_count = db.session.query(Patient).count()
+        # Здесь можно реализовать реальный uptime, пока просто заглушка
+        uptime = "99.8%"
+        # Возвращаем структуру, ожидаемую фронтом (users, patients, uptime)
+        return jsonify({
+            "users": users_count,
+            "patients": patients_count,
+            "uptime": uptime
+        })
+    except Exception as e:
+        print(f"Ошибка при получении статистики: {str(e)}")
+        return jsonify({"users": 0, "patients": 0, "uptime": "-"}), 500

@@ -216,6 +216,54 @@ def patients_handler():
             return jsonify({'error': str(e)}), 500
 
 
+@bp.route('/api/patients/<int:patient_id>', methods=['GET'])
+def get_patient(patient_id):
+    """
+    Получение данных пациента по ID
+    """
+    try:
+        patient = Patient.query.get_or_404(patient_id)
+
+        # Получаем информацию о последнем посещении
+        last_appointment = (
+            Appointment.query
+            .filter_by(patient_id=patient.patient_id)
+            .order_by(Appointment.appointment_date.desc())
+            .first()
+        )
+        last_visit = ""
+        if last_appointment and last_appointment.appointment_date:
+            last_visit = last_appointment.appointment_date.strftime('%Y-%m-%d')
+
+        # Получаем информацию о диагнозах
+        diagnoses = Diagnosis.query.filter_by(patient_id=patient.patient_id).order_by(
+            Diagnosis.diagnosis_id.desc()).all()
+        diagnoses_list = [
+            {
+                'diagnosis_id': d.diagnosis_id,
+                'diagnosis_text': d.diagnosis_text
+            } for d in diagnoses
+        ]
+
+        # Формируем ответ
+        return jsonify({
+            'patient_id': str(patient.patient_id),
+            'full_name': patient.full_name,
+            'birth_date': patient.birth_date.strftime('%Y-%m-%d') if patient.birth_date else None,
+            'gender': patient.gender,
+            'phone': patient.phone,
+            'email': patient.email,
+            'last_visit': last_visit,
+            'diagnoses': diagnoses_list
+        })
+
+    except Exception as e:
+        print(f"Ошибка при получении данных пациента: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({'error': str(e)}), 500
+
+
 @bp.route('/api/patient-search', methods=['POST'])
 def patient_search():
     """
@@ -751,3 +799,29 @@ def get_patient_details(patient_id):
         import traceback
         print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/api/patients/<int:patient_id>', methods=['OPTIONS'])
+@bp.route('/api/patients', methods=['OPTIONS'])
+def patient_options(patient_id=None):
+    # Вместо app.make_default_options_response() используем:
+    response = jsonify({})
+    response.status_code = 200
+
+    # Заголовки добавит middleware, но можно добавить их и здесь для надежности
+    origin = request.headers.get('Origin')
+    allowed_origins = [
+        "http://localhost:63343",
+        "http://127.0.0.1:63343",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000"
+    ]
+
+    if origin in allowed_origins:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+        response.headers.add('Access-Control-Allow-Headers',
+                             'Content-Type, Authorization, Accept, Cache-Control, Pragma, X-Requested-With')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+
+    return response

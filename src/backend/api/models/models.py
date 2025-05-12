@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import LargeBinary
+from sqlalchemy import LargeBinary, Sequence
 from sqlalchemy.dialects.postgresql import JSON, ENUM
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -24,12 +24,13 @@ appointment_status_enum = ENUM(
 class User(db.Model):
     __tablename__ = 'users'
 
-    user_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), nullable=False, unique=True)
+    # Используем только autoincrement=True, без Sequence для кросс-БД совместимости
+    user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    full_name = db.Column(db.String(100), nullable=False)
-    role = db.Column(user_role, nullable=False)
-    specialty = db.Column(db.String(100))
+    full_name = db.Column(db.String(128), nullable=False)
+    role = db.Column(db.String(32), nullable=False)
+    specialty = db.Column(db.String(128))
 
     # Отношения
     xrays = db.relationship('Xray', backref='uploaded_by_user')
@@ -165,6 +166,7 @@ class Diagnosis(db.Model):
 class Appointment(db.Model):
     __tablename__ = 'appointments'
 
+    # Удаляем лишний autoincrement, оставляем только primary_key=True
     appointment_id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.patient_id', ondelete='CASCADE'), nullable=False)
     doctor_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
